@@ -30,6 +30,14 @@
         .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); z-index: 40; }
         .drawer-overlay.open { display: block; }
         
+        /* AJUSTE CIRÚRGICO DA GRADE */
+        .header-grid, .ativo-row { 
+            display: grid !important; 
+            grid-template-columns: 1fr 0.7fr 0.9fr 0.9fr 1fr 2.8fr !important; 
+            gap: 12px !important; 
+            align-items: center !important; 
+        }
+
         @media print {
             @page { margin: 1cm; }
             .no-print { display: none !important; }
@@ -108,7 +116,7 @@
                 </div>
             </div>
 
-            <div class="header-grid grid grid-cols-6 gap-4 px-4 py-2 bg-blue-50 border border-blue-100 rounded mb-2 text-[10px] font-black uppercase text-blue-900">
+            <div class="header-grid grid px-4 py-2 bg-blue-50 border border-blue-100 rounded mb-2 text-[10px] font-black uppercase text-blue-900">
                 <div class="col-span-1">Ativo</div>
                 <div>Custódia</div>
                 <div>P. Médio</div>
@@ -249,7 +257,7 @@
                 const vpa = cleanNum(item.v); 
                 const div = cleanNum(item.d);
                 let indHtml = "";
-                const infoTxt = `<div class="text-slate-500 font-bold mb-1">[L: ${lpa.toFixed(2)} | V: ${vpa.toFixed(2)} | D: ${div.toFixed(2)}]</div>`;
+                const infoTxt = `<div class="text-slate-500 font-bold inline-block mb-1">[L: ${lpa.toFixed(2)} | V: ${vpa.toFixed(2)} | D: ${div.toFixed(2)}]</div>`;
                 if (item.cat === 'FIIS') {
                     const pvp = (cur > 0 && vpa > 0) ? (cur / vpa).toFixed(2) : "0.00";
                     const bazin = (div / 0.06);
@@ -269,8 +277,10 @@
                                  <div>Bazin: <span class="${cur > bazin ? 'text-red-500 font-bold' : 'text-slate-900 font-bold'}">R$ ${bazin.toFixed(2)}</span></div>
                                </div>`;
                 }
+                
+                // ALTERAÇÃO NA LINHA DA GRADE (REMOVIDO grid-cols-6 E ADICIONADO ativo-row)
                 container.innerHTML += `
-                <div class="card p-4 grid grid-cols-6 gap-4 items-center border-l-4 ${cur >= cleanNum(item.p) ? 'border-l-green-500' : 'border-l-red-500'} ativo-row">
+                <div class="card p-4 grid ativo-row items-center border-l-4 ${cur >= cleanNum(item.p) ? 'border-l-green-500' : 'border-l-red-500'}">
                     <div class="font-black text-blue-700 flex items-center gap-2">${item.t} <span class="text-[7px] bg-blue-100 text-blue-700 p-1 rounded font-black no-print">${item.cat || 'ACOES'}</span></div>
                     <div class="mono text-[11px] text-slate-900">${item.q} UN</div>
                     <div class="text-slate-900">R$ ${cleanNum(item.p).toFixed(2)}</div>
