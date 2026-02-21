@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão Financeira Global - Master</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #eceff1; margin: 20px; color: #333; }
+        .container { max-width: 1150px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .year-selector { background: #3498db; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .year-selector select { padding: 8px; border-radius: 4px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; }
+
+        .btn-report { background: #f39c12; width: 100%; padding: 12px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 15px; }
+        .global-dashboard { background: #2c3e50; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; }
+        .grid-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .stat-card { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-card h4 { margin: 0; font-size: 11px; text-transform: uppercase; color: #bdc3c7; }
+        .stat-card .big-val { font-size: 22px; font-weight: bold; margin-top: 5px; }
+
+        .toolbar { margin-bottom: 20px; display: flex; gap: 8px; flex-wrap: wrap; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
+        button.tool { padding: 8px 12px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; font-size: 13px; }
+        .btn-add-main { background: #27ae60; font-size: 15px !important; }
+        .btn-save { background: #3498db; }
+        .btn-copy { background: #34495e; }
+        .btn-clear-month { background: #e67e22; }
+        .btn-util { background: #7f8c8d; }
+        .btn-print-page { background: #9b59b6; }
+
+        .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 15px; }
+        .tab-btn { padding: 8px 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-radius: 4px; flex: 1; }
+        .tab-btn.active { background: #3498db; color: white; font-weight: bold; border: none; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f1f2f6; padding: 10px; font-size: 13px; text-align: left; }
+        td { border-bottom: 1px solid #eee; padding: 0; }
+        input { width: 100%; border: none; outline: none; padding: 10px; box-sizing: border-box; background: transparent; }
+        
+        .desc-input { text-transform: uppercase; }
+        .input-val { text-align: right; }
+        .status-cell { text-align: right; font-weight: bold; padding-right: 10px; background: #fafafa; width: 140px; }
+        
+        .action-cell { text-align: center; display: flex; justify-content: center; gap: 5px; padding: 5px 0; }
+        .btn-row-add { color: #3498db; cursor: pointer; font-weight: bold; border: none; background: none; font-size: 18px; }
+        .btn-row-del { color: #e74c3c; cursor: pointer; font-weight: bold; border: none; background: none; font-size: 18px; }
+
+        .footer-totals { background: #f8f9fa; padding: 12px; border-radius: 0 0 12px 12px; border: 1px solid #ddd; border-top: none; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
+        
+        #fileInput { display: none; }
+    </style>
+</head>
+<body onbeforeunload="saveDataSilent()" onunload="saveDataSilent()">
+
+<div class="container">
+    <h2>💰 Gestão Financeira Global</h2>
+
+    <div class="year-selector">
+        <label>Selecione o Ano:</label>
+        <select id="selectAno" onchange="changeYear()"></select>
+    </div>
+    
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-report" onclick="toggleGlobalReport()" style="flex: 2;">📊 VER DASHBOARD RÁPIDO</button>
+        <button class="btn-report btn-print-page" onclick="imprimirRelatorioAnual()" style="flex: 1;">📄 RELATÓRIO PARA IMPRESSÃO</button>
+    </div>
+
+    <div id="globalReport" class="global-dashboard">
+        <div class="grid-stats">
+            <div class="stat-card"><h4>Entradas Anuais</h4><div id="gEnt" class="big-val" style="color: #2ecc71;">R$ 0,00</div></div>
+            <div class="stat-card"><h4>Saídas Anuais</h4><div id="gSai" class="big-val" style="color: #e74c3c;">R$ 0,00</div></div>
+            <div class="stat-card" style="background: rgba(255,255,255,0.2);"><h4>Saldo Total</h4><div id="gSal" class="big-val">R$ 0,00</div></div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <button class="tool btn-add-main" onclick="adicionarLinhaFinal()">➕ Nova Linha no Final</button>
+        <button class="tool btn-save" onclick="saveData()">💾 Salvar</button>
+        <button class="tool btn-copy" id="btnCopy" onclick="copyPreviousMonth()">📋 Copiar Mês Anterior</button>
+        <button class="tool btn-clear-month" onclick="limparMesInteiro()">🧹 Limpar Mês Atual</button>
+        <button class="tool btn-util" onclick="exportBackup()">📥 Backup</button>
+        <button class="tool btn-util" onclick="document.getElementById('fileInput').click()">📤 Restaurar</button>
+        <input type="file" id="fileInput" onchange="importBackup(event)" accept=".txt">
+    </div>
+
+    <div class="tabs" id="tabContainer"></div>
+
+    <div id="tableContainer">
+        <table>
+            <thead>
+                <tr>
+                    <th width="45">Dia</th>
+                    <th>Descrição</th>
+                    <th width="140" style="text-align:right">Entrada (R$)</th>
+                    <th width="140" style="text-align:right">Saída (R$)</th>
+                    <th width="140" style="text-align:right">Saldo Acum.</th>
+                    <th width="70">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+        <div class="footer-totals">
+            <span id="labelMensal">Resumo do Mês: R$ 0,00</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    let currentYear = new Date().getFullYear();
+    let currentMonth = months[new Date().getMonth()];
+    let fullDB = JSON.parse(localStorage.getItem('financeDB_v2')) || {};
+
+    function format(v) { return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+    function saveDataSilent() { localStorage.setItem('financeDB_v2', JSON.stringify(fullDB)); }
+    function saveData() { saveDataSilent(); alert("✔️ Dados salvos!"); }
+
+    function init() {
+        const sel = document.getElementById('selectAno');
+        for(let y=2024; y<=2050; y++){
+            let opt = document.createElement('option');
+            opt.value = y; opt.innerText = y;
+            if(y === parseInt(currentYear)) opt.selected = true;
+            sel.appendChild(opt);
+        }
+        checkAndCreateYear(currentYear);
+        renderTabs();
+        renderTable();
+    }
+
+    function checkAndCreateYear(year) {
+        if(!fullDB[year]) fullDB[year] = {};
+        months.forEach(m => {
+            if(!fullDB[year][m]) fullDB[year][m] = [];
+            while(fullDB[year][m].length < 10) fullDB[year][m].push({d:'', desc:'', e:'', s:''});
+        });
+    }
+
+    function adicionarLinhaFinal() {
+        fullDB[currentYear][currentMonth].push({d:'', desc:'', e:'', s:''});
+        renderTable();
+        saveDataSilent();
+    }
+
+    function inserirLinhaNoMeio(index) {
+        fullDB[currentYear][currentMonth].splice(index + 1, 0, {d:'', desc:'', e:'', s:''});
+        renderTable();
+        saveDataSilent();
+    }
+
+    function changeYear() {
+        currentYear = document.getElementById('selectAno').value;
+        checkAndCreateYear(currentYear);
+        renderTable();
+    }
+
+    function renderTabs() {
+        const tabCont = document.getElementById('tabContainer');
+        tabCont.innerHTML = '';
+        months.forEach(m => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${m === currentMonth ? 'active' : ''}`;
+            btn.innerText = m;
+            btn.onclick = (e) => {
+                currentMonth = m;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                renderTable();
+            };
+            tabCont.appendChild(btn);
+        });
+    }
+
+    function update(i, field, val) {
+        if (field === 'desc') val = val.toUpperCase();
+        fullDB[currentYear][currentMonth][i][field] = val;
+        recalculate();
+        saveDataSilent();
+    }
+
+    function clearRow(i) {
+        fullDB[currentYear][currentMonth].splice(i, 1);
+        if(fullDB[currentYear][currentMonth].length < 10) fullDB[currentYear][currentMonth].push({d:'', desc:'', e:'', s:''});
+        renderTable();
+        saveDataSilent();
+    }
+
+    function limparMesInteiro() {
+        if(confirm(`⚠️ ATENÇÃO: Deseja apagar TUDO em ${currentMonth}/${currentYear}?`)) {
+            fullDB[currentYear][currentMonth] = Array(10).fill().map(() => ({d:'', desc:'', e:'', s:''}));
+            renderTable();
+            saveDataSilent();
+        }
+    }
+
+    function recalculate() {
+        let tEnt = 0, tSai = 0, acumulado = 0;
+        const rows = document.querySelectorAll('#tableBody tr');
+        fullDB[currentYear][currentMonth].forEach((data, i) => {
+            const e = parseFloat(data.e || 0); const s = parseFloat(data.s || 0);
+            tEnt += e; tSai += s; acumulado += (e - s);
+            const cell = rows[i]?.querySelector('.status-cell');
+            if(cell) {
+                const temDado = data.d || data.desc || data.e || data.s;
+                cell.innerText = temDado ? format(acumulado) : '';
+                cell.style.color = acumulado >= 0 ? "#27ae60" : "#c0392b";
+            }
+        });
+        document.getElementById('labelMensal').innerText = `${currentMonth}/${currentYear} -> Entradas: R$ ${format(tEnt)} | Saídas: R$ ${format(tSai)} | Saldo: R$ ${format(tEnt-tSai)}`;
+        if(document.getElementById('globalReport').style.display === 'block') updateGlobalStats();
+    }
+
+    function renderTable() {
+        const body = document.getElementById('tableBody');
+        body.innerHTML = '';
+        fullDB[currentYear][currentMonth].forEach((row, i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" value="${row.d || ''}" oninput="update(${i}, 'd', this.value)"></td>
+                <td><input type="text" class="desc-input" value="${row.desc || ''}" oninput="update(${i}, 'desc', this.value)"></td>
+                <td><input type="number" step="0.01" class="input-val" value="${row.e || ''}" oninput="update(${i}, 'e', this.value)"></td>
+                <td><input type="number" step="0.01" class="input-val" value="${row.s || ''}" oninput="update(${i}, 's', this.value)"></td>
+                <td class="status-cell"></td>
+                <td class="action-cell">
+                    <button class="btn-row-add" onclick="inserirLinhaNoMeio(${i})" title="Inserir linha abaixo">+</button>
+                    <button class="btn-row-del" onclick="clearRow(${i})" title="Excluir linha">×</button>
+                </td>
+            `;
+            body.appendChild(tr);
+        });
+        recalculate();
+    }
+
+    function toggleGlobalReport() {
+        const report = document.getElementById('globalReport');
+        report.style.display = (report.style.display === 'block') ? 'none' : 'block';
+        if(report.style.display === 'block') updateGlobalStats();
+    }
+
+    function updateGlobalStats() {
+        let totalE = 0, totalS = 0;
+        months.forEach(m => {
+            if(fullDB[currentYear][m]) fullDB[currentYear][m].forEach(row => { totalE += parseFloat(row.e || 0); totalS += parseFloat(row.s || 0); });
+        });
+        document.getElementById('gEnt').innerText = "R$ " + format(totalE);
+        document.getElementById('gSai').innerText = "R$ " + format(totalS);
+        const balanco = totalE - totalS;
+        document.getElementById('gSal').innerText = "R$ " + format(balanco);
+        document.getElementById('gSal').style.color = balanco >= 0 ? "#2ecc71" : "#e74c3c";
+    }
+
+    function imprimirRelatorioAnual() {
+        const win = window.open('', '_blank');
+        let totalE_Ano = 0, totalS_Ano = 0;
+        let html = `
+        <html><head><title>Relatório Financeiro Anual ${currentYear}</title>
+        <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #333; }
+            h1 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+            h3 { text-align: center; color: #7f8c8d; margin-top: 0; margin-bottom: 30px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            th, td { border: 1px solid #ddd; padding: 12px; text-align: right; }
+            th { background: #34495e; color: white; text-align: center; text-transform: uppercase; font-size: 14px; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .mes-nome { text-align: left; font-weight: bold; background: #f1f2f6; }
+            .total-final { background: #2c3e50 !important; color: white; font-weight: bold; font-size: 16px; }
+            .positivo { color: #27ae60; } .negativo { color: #e74c3c; }
+            .print-header { text-align: center; margin-bottom: 20px; }
+            .btn-print-now { background: #27ae60; color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+            .btn-print-now:hover { background: #219150; transform: translateY(-2px); }
+            @media print { .no-print { display: none !important; } body { padding: 0; } table { box-shadow: none; } }
+        </style>
+        </head><body>
+            <div class="print-header no-print">
+                <button class="btn-print-now" onclick="window.print()">🖨️ IMPRIMIR RELATÓRIO AGORA</button>
+            </div>
+            <h1>Resumo Financeiro Anual</h1>
+            <h3>Ano Base: ${currentYear}</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align:left">Mês</th>
+                        <th>Entradas</th>
+                        <th>Saídas</th>
+                        <th>Saldo Mensal</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        months.forEach(m => {
+            let eMes = 0, sMes = 0;
+            if(fullDB[currentYear][m]) fullDB[currentYear][m].forEach(row => { eMes += parseFloat(row.e || 0); sMes += parseFloat(row.s || 0); });
+            let saldo = eMes - sMes; totalE_Ano += eMes; totalS_Ano += sMes;
+            html += `<tr><td class="mes-nome">${m}</td><td>R$ ${format(eMes)}</td><td>R$ ${format(sMes)}</td><td class="${saldo >= 0 ? 'positivo' : 'negativo'}">R$ ${format(saldo)}</td></tr>`;
+        });
+
+        html += `
+                <tr class="total-final">
+                    <td style="text-align:left">TOTAL ACUMULADO</td>
+                    <td>R$ ${format(totalE_Ano)}</td>
+                    <td>R$ ${format(totalS_Ano)}</td>
+                    <td>R$ ${format(totalE_Ano - totalS_Ano)}</td>
+                </tr>
+            </tbody></table>
+            <p style="text-align:right; font-size:12px; color:gray; margin-top:20px;">Gerado em: ${new Date().toLocaleString()}</p>
+        </body></html>`;
+
+        win.document.write(html);
+        win.document.close();
+    }
+
+    function copyPreviousMonth() {
+        const idx = months.indexOf(currentMonth);
+        if (idx > 0 && confirm(`Clonar dados de ${months[idx-1]} para ${currentMonth}?`)) {
+            fullDB[currentYear][currentMonth] = JSON.parse(JSON.stringify(fullDB[currentYear][months[idx-1]]));
+            renderTable(); saveDataSilent();
+        }
+    }
+
+    function exportBackup() {
+        const agora = new Date();
+        const dataFormatada = agora.getFullYear() + "-" + 
+                              String(agora.getMonth() + 1).padStart(2, '0') + "-" + 
+                              String(agora.getDate()).padStart(2, '0') + "_" + 
+                              String(agora.getHours()).padStart(2, '0') + "-" + 
+                              String(agora.getMinutes()).padStart(2, '0');
+
+        const blob = new Blob([JSON.stringify(fullDB)], {type: 'text/plain'});
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(blob);
+        a.download = `backup_financeiro_global_${dataFormatada}.txt`; 
+        a.click();
+    }
+
+    function importBackup(event) {
+        const reader = new FileReader();
+        reader.onload = (e) => { fullDB = JSON.parse(e.target.result); location.reload(); };
+        reader.readAsText(event.target.files[0]);
+    }
+
+    init();
+</script>
+</body>
+</html>

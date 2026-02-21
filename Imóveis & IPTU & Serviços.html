@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Manager | Patrimônio Sincronizado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-bg: #0f172a; --main-bg: #f1f5f9; --accent: #3b82f6; --text-main: #1e293b;
+            --text-muted: #64748b; --white: #ffffff; --border: #e2e8f0; --danger: #ef4444; --success: #10b981;
+            --sidebar-width: 70px;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--main-bg); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        nav { 
+            width: var(--sidebar-width); 
+            background: var(--sidebar-bg); 
+            color: white; 
+            padding: 25px 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            gap: 10px; 
+            z-index: 10;
+        }
+
+        .logo { font-weight: 700; font-size: 0.9rem; margin-bottom: 20px; color: var(--accent); text-align: center; letter-spacing: 1px; }
+        
+        .nav-item { 
+            width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+            border-radius: 10px; color: #94a3b8; cursor: pointer; border: none; background: none; 
+            transition: 0.2s; font-size: 1.3rem; position: relative;
+        }
+
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
+        
+        .side-btn { 
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+            color: #fff; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; 
+            font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+
+        [data-title] { position: relative; }
+        [data-title]:hover::after {
+            content: attr(data-title); position: absolute; left: 100%; top: 50%; transform: translateY(-50%);
+            margin-left: 12px; padding: 6px 12px; background: #1e293b; color: #fff; font-size: 0.75rem;
+            font-weight: 500; white-space: nowrap; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999;
+        }
+
+        main { flex: 1; padding: 40px; overflow-y: auto; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        .add-form { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 1fr 1.5fr auto; gap: 10px; margin-bottom: 20px; }
+        input { padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.85rem; width: 100%; }
+        .table-container { background: var(--white); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 15px 20px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; text-align: left; }
+        td { padding: 12px 20px; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: middle; }
+        
+        .btn-add { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .btn-del { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 0.75rem; }
+        .btn-edit { color: var(--accent); background: none; border: none; cursor: pointer; font-size: 0.75rem; margin-right: 8px; }
+        .btn-save { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: bold; margin-right: 8px; }
+        .btn-insert { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; margin-right: 8px; }
+        
+        .action-btn { background: #f1f5f9; color: var(--accent); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
+        .copy-btn { background: white; border: 1px solid var(--border); color: var(--text-muted); padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 0.65rem; }
+        .sync-icon { color: var(--accent); font-size: 0.7rem; margin-right: 5px; opacity: 0.5; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">A.P</div>
+        <button onclick="switchTab('imoveis')" id="tab-imoveis" class="nav-item active" data-title="Imóveis (IPTU)">🏠</button>
+        <button onclick="switchTab('matriculas')" id="tab-matriculas" class="nav-item" data-title="Matrículas">📜</button>
+        <button onclick="switchTab('condominios')" id="tab-condominios" class="nav-item" data-title="Condomínios">🏢</button>
+        <button onclick="switchTab('luz')" id="tab-luz" class="nav-item" data-title="Luz">💡</button>
+        <button onclick="switchTab('agua')" id="tab-agua" class="nav-item" data-title="Água">💧</button>
+        <button onclick="switchTab('telefone')" id="tab-telefone" class="nav-item" data-title="Telefone">📞</button>
+        <button onclick="switchTab('gas')" id="tab-gas" class="nav-item" data-title="Gás">🔥</button>
+        <button onclick="switchTab('saude')" id="tab-saude" class="nav-item" data-title="Assist. Médica">🏥</button>
+        <button onclick="switchTab('cartao')" id="tab-cartao" class="nav-item" data-title="Cartão de Crédito">💳</button>
+        
+        <div style="margin-top: auto; padding-bottom: 10px; display: flex; flex-direction: column; gap: 10px; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; width: 100%;">
+            <button class="side-btn" onclick="exportarDados()" data-title="Exportar Backup">📤</button>
+            <button class="side-btn" onclick="document.getElementById('importFile').click()" data-title="Importar Backup">📥</button>
+            <input type="file" id="importFile" style="display:none" onchange="importarDados(event)">
+        </div>
+    </nav>
+
+    <main id="main-content"></main>
+
+    <script>
+        const categoryConfig = {
+            imoveis: { label: "Imóveis & IPTU", icon: "🏠", fields: ["Nome", "Cidade", "Inscrição", "Link"] },
+            matriculas: { label: "Matrículas (Reg. Imóveis)", icon: "📜", fields: ["Nome", "Cidade", "Matrícula", "Link"] },
+            condominios: { label: "Condomínios", icon: "🏢", fields: ["Condomínio", "Cidade", "Ref/Inscrição", "Link"] },
+            luz: { label: "Luz", icon: "💡", fields: ["Identificação", "Cidade", "Instalação", "Link"] },
+            agua: { label: "Água", icon: "💧", fields: ["Identificação", "Cidade", "RGI", "Link"] },
+            telefone: { label: "Telefone", icon: "📞", fields: ["Linha/ID", "Operadora", "Número", "Link"] },
+            gas: { label: "Gás", icon: "🔥", fields: ["Identificação", "Cidade", "Código", "Link"] },
+            saude: { label: "Assistência Médica", icon: "🏥", fields: ["Plano", "Operadora", "Matrícula", "Link"] },
+            cartao: { label: "Cartão de Crédito", icon: "💳", fields: ["Cartão", "Banco", "Final", "Link"] }
+        };
+
+        let data = JSON.parse(localStorage.getItem('asset_pro_master_data')) || {};
+        Object.keys(categoryConfig).forEach(cat => { if(!data[cat]) data[cat] = []; });
+
+        let editIdx = { type: null, index: null };
+
+        function initLayout() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = '';
+            Object.keys(categoryConfig).forEach(cat => {
+                const config = categoryConfig[cat];
+                const section = document.createElement('div');
+                section.id = `section-${cat}`;
+                section.className = `view-section ${cat === 'imoveis' ? 'active' : ''}`;
+                section.innerHTML = `
+                    <header><h1>${config.icon} ${config.label}</h1></header>
+                    <div class="add-form">
+                        <input type="text" id="${cat}F1" placeholder="${config.fields[0]}">
+                        <input type="text" id="${cat}F2" placeholder="${config.fields[1]}">
+                        <input type="text" id="${cat}F3" placeholder="${config.fields[2]}" ${cat === 'telefone' ? 'oninput="maskTel(this)" maxlength="15"' : ''}>
+                        <input type="text" id="${cat}F4" placeholder="${config.fields[3]}">
+                        <button class="btn-add" onclick="addItem('${cat}')">Adicionar +</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>${config.fields[0]}</th><th>${config.fields[1]}</th><th>${config.fields[2]}</th><th>${config.fields[3]}</th><th>Ações</th></tr></thead>
+                            <tbody id="body-${cat}"></tbody>
+                        </table>
+                    </div>
+                `;
+                main.appendChild(section);
+            });
+            render();
+        }
+
+        // Função de Máscara Pontual para Telefone
+        function maskTel(i) {
+            let v = i.value.replace(/\D/g, "");
+            v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+            v = v.replace(/(\d)(\d{4})$/, "$1-$2");
+            i.value = v;
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('section-' + tab).classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        function render() {
+            Object.keys(categoryConfig).forEach(cat => renderTable(cat));
+            localStorage.setItem('asset_pro_master_data', JSON.stringify(data));
+        }
+
+        function renderTable(type) {
+            const body = document.getElementById(`body-${type}`);
+            if (!body) return;
+            body.innerHTML = '';
+            
+            data[type].forEach((item, index) => {
+                const isSync = (type === 'imoveis' || type === 'matriculas');
+                if (editIdx.type === type && editIdx.index === index) {
+                    body.innerHTML += `<tr>
+                        <td><input type="text" id="edit-f1" value="${item.nome}"></td>
+                        <td><input type="text" id="edit-f2" value="${item.cidade}"></td>
+                        <td><input type="text" id="edit-f3" value="${item.insc}" ${type === 'telefone' ? 'oninput="maskTel(this)" maxlength="15"' : ''}></td>
+                        <td><input type="text" id="edit-f4" value="${item.link}"></td>
+                        <td><button class="btn-save" onclick="saveEdit('${type}', ${index})">Salvar</button><button class="btn-del" onclick="cancelEdit()">Cancelar</button></td>
+                    </tr>`;
+                } else {
+                    body.innerHTML += `<tr>
+                        <td>${isSync ? '<span class="sync-icon">🔄</span>' : ''}<strong>${item.nome || ''}</strong></td>
+                        <td>${item.cidade || ''}</td>
+                        <td><code>${item.insc || ''}</code> <button class="copy-btn" onclick="copiar('${item.insc}', this)">Copiar</button></td>
+                        <td><a href="${item.link || '#'}" target="_blank" class="action-btn">${item.link ? 'Portal' : '-'}</a></td>
+                        <td>
+                            <button class="btn-insert" onclick="insertRow('${type}', ${index})">Inserir ↓</button>
+                            <button class="btn-edit" onclick="setEdit('${type}', ${index})">Editar</button>
+                            <button class="btn-del" onclick="removeItem('${type}', ${index})">Excluir</button>
+                        </td>
+                    </tr>`;
+                }
+            });
+        }
+
+        function setEdit(type, index) { editIdx = { type, index }; render(); }
+        function cancelEdit() { editIdx = { type: null, index: null }; render(); }
+
+        function saveEdit(type, index) {
+            const item = data[type][index];
+            const newNome = document.getElementById('edit-f1').value;
+            const newCidade = document.getElementById('edit-f2').value;
+
+            item.nome = newNome;
+            item.cidade = newCidade;
+            item.insc = document.getElementById('edit-f3').value;
+            item.link = document.getElementById('edit-f4').value;
+
+            if (type === 'imoveis' || type === 'matriculas') {
+                const other = (type === 'imoveis') ? 'matriculas' : 'imoveis';
+                const target = data[other].find(i => i.id === item.id);
+                if (target) {
+                    target.nome = newNome;
+                    target.cidade = newCidade;
+                }
+            }
+            cancelEdit();
+        }
+
+        function addItem(type) {
+            const f1Val = document.getElementById(type + 'F1').value;
+            if (!f1Val) return;
+            const newItem = { 
+                id: Date.now(), 
+                nome: f1Val, 
+                cidade: document.getElementById(type + 'F2').value, 
+                insc: document.getElementById(type + 'F3').value, 
+                link: document.getElementById(type + 'F4').value 
+            };
+            data[type].push(newItem);
+            
+            if (type === 'imoveis' || type === 'matriculas') {
+                const other = (type === 'imoveis') ? 'matriculas' : 'imoveis';
+                data[other].push({ ...newItem, insc: "", link: "" });
+            }
+            
+            render();
+            ['F1', 'F2', 'F3', 'F4'].forEach(f => {
+                const el = document.getElementById(type + f);
+                if(el) el.value = '';
+            });
+        }
+
+        function insertRow(type, index) {
+            const newId = Date.now();
+            const newItem = { id: newId, nome: "", cidade: "", insc: "", link: "" };
+            data[type].splice(index + 1, 0, newItem);
+            if (type === 'imoveis' || type === 'matriculas') {
+                const other = (type === 'imoveis') ? 'matriculas' : 'imoveis';
+                data[other].splice(index + 1, 0, { id: newId, nome: "", cidade: "", insc: "", link: "" });
+            }
+            setEdit(type, index + 1);
+        }
+
+        function removeItem(type, index) {
+            if(!confirm("Excluir item?")) return;
+            const item = data[type][index];
+            if (type === 'imoveis' || type === 'matriculas') {
+                data.imoveis = data.imoveis.filter(i => i.id !== item.id);
+                data.matriculas = data.matriculas.filter(i => i.id !== item.id);
+            } else {
+                data[type].splice(index, 1);
+            }
+            render();
+        }
+
+        function copiar(texto, btn) {
+            if(!texto || texto === "-") return;
+            navigator.clipboard.writeText(texto);
+            const old = btn.innerText; btn.innerText = "OK!";
+            setTimeout(() => { btn.innerText = old; }, 1000);
+        }
+
+        function exportarDados() {
+            const agora = new Date();
+            const timestamp = agora.toISOString().replace(/[:.]/g, '-');
+            const nomeArquivo = `backup_patrimonio_${timestamp}.json`;
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nomeArquivo;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importarDados(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => { 
+                try { 
+                    const imported = JSON.parse(ev.target.result);
+                    Object.keys(categoryConfig).forEach(cat => {
+                        if(!imported[cat]) imported[cat] = [];
+                    });
+                    data = imported;
+                    render(); 
+                } catch(err) { alert("Erro ao importar."); } 
+            };
+            reader.readAsText(e.target.files[0]);
+        }
+
+        initLayout();
+    </script>
+</body>
+</html>

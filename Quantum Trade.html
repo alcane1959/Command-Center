@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumTrade | Terminal Full Data</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@500&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #0f172a; font-size: 13px; }
+        .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        input, select { border: 1px solid #94a3b8 !important; border-radius: 4px !important; padding: 4px 8px !important; font-size: 11px !important; color: #0f172a !important; font-weight: 600 !important; transition: border-color 0.3s ease; }
+        
+        .tab-btn { border: 1px solid #cbd5e1; border-bottom: none; border-radius: 4px 4px 0 0; transition: all 0.2s; margin-bottom: -1px; }
+        .tab-active { color: #2563eb !important; border: 1px solid #2563eb !important; border-bottom: 2px solid #ffffff !important; font-weight: 900 !important; z-index: 10; background: white; }
+        
+        .btn-custom-blue { background-color: #eff6ff !important; border: 1px solid #dbeafe !important; color: #1e3a8a !important; transition: all 0.2s; font-weight: 900; }
+        .btn-custom-blue:hover { background-color: #dbeafe !important; border-color: #2563eb !important; }
+
+        .btn-add-style { background-color: #eff6ff !important; border: 1px solid #93c5fd !important; color: #1e3a8a !important; transition: all 0.2s; font-weight: 900; }
+        .btn-add-style:hover { background-color: #dbeafe !important; border-color: #2563eb !important; }
+
+        .loading-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        #market-drawer { transform: translateX(100%); transition: transform 0.3s ease-in-out; z-index: 50; }
+        #market-drawer.open { transform: translateX(0); }
+        .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); z-index: 40; }
+        .drawer-overlay.open { display: block; }
+        
+        @media print {
+            @page { margin: 1cm; }
+            .no-print { display: none !important; }
+            body { background: white !important; padding: 0 !important; }
+            .card { border: 1px solid #eee !important; box-shadow: none !important; margin-bottom: 10px !important; }
+            .header-grid, .ativo-row { display: grid !important; grid-template-columns: 1fr 0.8fr 1fr 1fr 1fr 2.2fr !important; gap: 8px !important; align-items: center !important; }
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div id="overlay" class="drawer-overlay no-print" onclick="toggleDrawer()"></div>
+
+    <nav class="max-w-[1400px] mx-auto mb-4 flex justify-between items-center bg-white p-3 rounded-lg border border-slate-300 no-print">
+        <span class="font-black text-lg uppercase tracking-tighter text-blue-600 italic">QuantumTrade</span>
+        <div class="flex items-center gap-2">
+            <div class="flex items-center bg-slate-50 border border-slate-200 rounded p-1 gap-1">
+                <button onclick="sincronizarDadosMestres()" id="btn-sync-master" class="btn-custom-blue px-3 py-2 rounded text-[10px] uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-rotate" id="sync-icon-master"></i> Atualizar Dados (LPA/VPA)
+                </button>
+                <button onclick="resetarEBucarNovosDados()" title="Resetar Banco Local" class="px-3 py-2 text-red-500 hover:bg-red-50 rounded transition-colors">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+            <button onclick="toggleDrawer()" class="btn-custom-blue px-4 py-2 rounded text-[10px] uppercase flex items-center gap-2">
+                <i class="fa-solid fa-chart-line"></i> Ver Mercado
+            </button>
+            <input type="password" id="api-token" placeholder="API KEY" class="!w-40 !p-1 text-[10px]">
+            <button onclick="salvarToken()" class="text-[10px] font-black text-slate-900 hover:text-blue-600 uppercase">Conectar</button>
+            <div id="status-api" class="h-2 w-2 rounded-full bg-red-500"></div>
+            <span id="clock" class="mono text-[10px] font-bold text-slate-900">00:00:00</span>
+        </div>
+    </nav>
+
+    <main class="max-w-[1400px] mx-auto">
+        <section class="card p-6">
+            <div class="flex justify-between border-b border-slate-300 pb-4 mb-6 items-start">
+                <div class="grid grid-cols-1 gap-1">
+                    <h1 class="text-xl uppercase text-slate-900" id="print-name">INVESTIDOR</h1>
+                    <p class="text-[11px] text-slate-900 mono" id="print-cpf">000.000.000-00</p>
+                    <div class="no-print mt-2 flex gap-2">
+                        <input type="text" id="u-name" oninput="salvarPerfil()" placeholder="NOME DO INVESTIDOR">
+                        <input type="text" id="u-cpf" oninput="salvarPerfil()" placeholder="CPF/CNPJ">
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] font-black text-slate-900 uppercase">Patrimônio Atual</p>
+                    <h2 class="text-3xl text-blue-600" id="total-pat">R$ 0,00</h2>
+                    <p class="text-[10px] mono text-slate-900 mt-1">Ref: 2026-02-18 | Sinc: <span id="last-sync">Nunca</span></p>
+                </div>
+            </div>
+
+            <div class="flex gap-2 mb-0 border-b border-slate-300 no-print">
+                <button onclick="setAba('ACOES')" id="tab-ACOES" class="tab-btn px-4 pb-2 pt-1 text-[11px] font-black uppercase tracking-wider tab-active">Ações</button>
+                <button onclick="setAba('FIIS')" id="tab-FIIS" class="tab-btn px-4 pb-2 pt-1 text-[11px] font-black uppercase tracking-wider text-slate-900 bg-slate-50">FIIs</button>
+                <button onclick="setAba('TUDO')" id="tab-TUDO" class="tab-btn px-4 pb-2 pt-1 text-[11px] font-black uppercase tracking-wider text-slate-900 bg-slate-50">Ver Carteira Completa</button>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-b-lg border border-t-0 border-blue-100 mb-6 no-print">
+                <div class="grid grid-cols-2 md:grid-cols-7 gap-3">
+                    <input type="text" id="in-ticker" placeholder="TICKER" class="font-black uppercase text-blue-700 placeholder:text-blue-300" onblur="autoPreencher(this.value)">
+                    <input type="number" id="in-qtd" placeholder="QTD">
+                    <input type="text" id="in-preco" placeholder="PREÇO MÉDIO">
+                    <input type="text" id="in-lpa" placeholder="LPA / VPA">
+                    <input type="text" id="in-vpa" placeholder="VPA / P.VP REF">
+                    <input type="text" id="in-div" placeholder="DIVIDENDOS">
+                    <select id="in-cat" class="font-black text-[10px] uppercase text-slate-900">
+                        <option value="ACOES">Ação</option>
+                        <option value="FIIS">FII</option>
+                    </select>
+                </div>
+                <div class="flex justify-end mt-3">
+                    <button id="btn-add" onclick="addAtivo()" class="btn-add-style px-8 py-2 rounded text-[11px] uppercase shadow-sm">
+                        <i class="fa-solid fa-plus mr-1"></i> Lançar Ativo
+                    </button>
+                </div>
+            </div>
+
+            <div class="header-grid grid grid-cols-6 gap-4 px-4 py-2 bg-blue-50 border border-blue-100 rounded mb-2 text-[10px] font-black uppercase text-blue-900">
+                <div class="col-span-1">Ativo</div>
+                <div>Custódia</div>
+                <div>P. Médio</div>
+                <div>P. Atual</div>
+                <div>Total</div>
+                <div>Indicadores Valuation</div>
+            </div>
+
+            <div class="flex flex-col gap-2" id="lista-ativos"></div>
+
+            <div class="mt-8 pt-6 border-t border-slate-300 flex flex-wrap gap-3 no-print">
+                <button onclick="exportarCarteira()" class="flex-1 btn-custom-blue px-4 py-2 rounded text-[10px] uppercase">EXPORTAR JSON</button>
+                <button onclick="document.getElementById('file-import').click()" class="flex-1 btn-custom-blue px-4 py-2 rounded text-[10px] uppercase">IMPORTAR JSON</button>
+                <button onclick="window.print()" class="flex-1 btn-custom-blue px-4 py-2 rounded text-[10px] uppercase">GERAR RELATÓRIO PDF</button>
+                <input type="file" id="file-import" class="hidden" onchange="importarCarteira(this)">
+            </div>
+        </section>
+    </main>
+
+    <aside id="market-drawer" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl border-l border-slate-300 flex flex-col no-print">
+        <div class="p-4 border-b bg-slate-100 flex justify-between items-center">
+            <h3 class="font-black uppercase text-xs text-slate-900">Radar de Mercado</h3>
+            <button onclick="toggleDrawer()" class="text-slate-900"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="lista-mercado" class="flex-1 overflow-y-auto p-2"></div>
+    </aside>
+
+    <script>
+        let abaAtiva = 'ACOES'; 
+        let precos = {}; 
+        let carteira = JSON.parse(localStorage.getItem('qt_full_cart') || '[]');
+        
+        const DB_BASE = { 
+            ACOES: {
+                'PETR4': { l: 10.55, v: 31.25, d: 4.58 }, 'VALE3': { l: 8.42, v: 45.10, d: 6.20 },
+                'ITUB4': { l: 3.85, v: 19.40, d: 1.25 }, 'BBAS3': { l: 9.32, v: 56.10, d: 4.88 },
+                'BBDC4': { l: 1.62, v: 16.50, d: 0.90 }, 'ABEV3': { l: 0.96, v: 5.75, d: 0.73 },
+                'WEGE3': { l: 1.25, v: 5.10, d: 0.75 }, 'ITSA4': { l: 1.45, v: 7.90, d: 0.85 },
+                'JBSS3': { l: 1.95, v: 35.10, d: 1.50 }, 'TAEE11': { l: 3.25, v: 24.10, d: 3.10 }
+            }, 
+            FIIS: {
+                'MXRF11': { l: 0.12, v: 9.85, d: 1.15 }, 'HGLG11': { l: 1.15, v: 153.20, d: 13.20 },
+                'XPLG11': { l: 0.78, v: 112.10, d: 9.36 }, 'KNRI11': { l: 0.95, v: 159.40, d: 11.40 },
+                'KNIP11': { l: 1.10, v: 98.15, d: 12.00 }, 'XPML11': { l: 0.85, v: 114.20, d: 10.20 },
+                'VISC11': { l: 0.90, v: 116.10, d: 10.80 }, 'BTLG11': { l: 0.76, v: 98.40, d: 9.12 },
+                'HGRU11': { l: 0.88, v: 122.10, d: 10.56 }, 'CPTS11': { l: 0.08, v: 9.10, d: 0.96 }
+            } 
+        };
+
+        let DB = JSON.parse(localStorage.getItem('qt_db_custom')) || JSON.parse(JSON.stringify(DB_BASE));
+
+        function autoPreencher(ticker) {
+            if (!ticker) return;
+            const t = ticker.toUpperCase();
+            const cat = t.endsWith('11') ? 'FIIS' : 'ACOES';
+            document.getElementById('in-cat').value = cat;
+            const info = DB[cat][t];
+            const fields = ['in-lpa', 'in-vpa', 'in-div'];
+            if (info) {
+                document.getElementById('in-lpa').value = info.l ? info.l.toFixed(2) : "0.00";
+                document.getElementById('in-vpa').value = info.v ? info.v.toFixed(2) : "0.00";
+                document.getElementById('in-div').value = info.d ? info.d.toFixed(2) : "0.00";
+                fields.forEach(id => document.getElementById(id).style.borderColor = "#22c55e");
+            } else {
+                fields.forEach(id => { document.getElementById(id).value = ""; document.getElementById(id).style.borderColor = "#94a3b8"; });
+            }
+        }
+
+        function resetarEBucarNovosDados() {
+            if (confirm("Deseja limpar o banco local e restaurar os dados originais?")) {
+                DB = JSON.parse(JSON.stringify(DB_BASE));
+                localStorage.removeItem('qt_db_custom');
+                alert("Banco restaurado. Atualizando via API...");
+                sincronizarDadosMestres();
+            }
+        }
+
+        async function sincronizarDadosMestres() {
+            const tk = localStorage.getItem('qt_full_token');
+            if (!tk) return alert("API KEY é necessária!");
+            const btn = document.getElementById('btn-sync-master');
+            const icon = document.getElementById('sync-icon-master');
+            btn.disabled = true; icon.classList.add('loading-spin');
+            const tks = [...new Set([...Object.keys(DB.ACOES), ...Object.keys(DB.FIIS), ...carteira.map(i => i.t)])].join(',');
+            try {
+                const r = await fetch(`https://brapi.dev/api/quote/${tks}?token=${tk}`);
+                const data = await r.json();
+                if (data.results) {
+                    data.results.forEach(s => {
+                        const ticker = s.symbol;
+                        const cat = (ticker.endsWith('11')) ? 'FIIS' : 'ACOES';
+                        if (!DB[cat][ticker]) DB[cat][ticker] = { l: 0, v: 0, d: 0 };
+                        DB[cat][ticker].l = s.earningsPerShare || DB[cat][ticker].l || 0;
+                        DB[cat][ticker].v = s.bookValue || DB[cat][ticker].v || 0;
+                        if (s.dividendYield && s.regularMarketPrice) DB[cat][ticker].d = (s.dividendYield * s.regularMarketPrice / 100);
+                        precos[ticker] = s.regularMarketPrice;
+                    });
+                    localStorage.setItem('qt_db_custom', JSON.stringify(DB));
+                    const agora = new Date().toLocaleString('pt-BR');
+                    localStorage.setItem('qt_last_sync_master', agora);
+                    document.getElementById('last-sync').innerText = agora;
+                    autoPreencher(document.getElementById('in-ticker').value);
+                }
+            } catch (e) { alert("Erro na sincronização."); } finally { btn.disabled = false; icon.classList.remove('loading-spin'); updateUI(); }
+        }
+
+        function setAba(aba) {
+            abaAtiva = aba;
+            document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('tab-active', 'bg-white'); el.classList.add('text-slate-900', 'bg-slate-50'); });
+            const target = document.getElementById(`tab-${aba}`);
+            if(target) { target.classList.add('tab-active'); target.classList.remove('bg-slate-50'); }
+            updateUI();
+        }
+
+        function toggleDrawer() { document.getElementById('market-drawer').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+        function cleanNum(val) { if (!val) return 0; let n = String(val).replace(',', '.'); return parseFloat(n) || 0; }
+
+        async function fetchMercado() {
+            const tk = localStorage.getItem('qt_full_token'); if(!tk) return;
+            const tks = [...new Set([...Object.keys(DB.ACOES), ...Object.keys(DB.FIIS), ...carteira.map(i => i.t)])].join(',');
+            try {
+                const r = await fetch(`https://brapi.dev/api/quote/${tks}?token=${tk}`);
+                const d = await r.json();
+                if(d.results) d.results.forEach(s => precos[s.symbol] = s.regularMarketPrice);
+                document.getElementById('status-api').className = "h-2 w-2 rounded-full bg-green-500";
+                updateUI();
+            } catch (e) {}
+        }
+
+        function updateUI() {
+            const container = document.getElementById('lista-ativos'); container.innerHTML = "";
+            const ativos = abaAtiva === 'TUDO' ? carteira : carteira.filter(item => (item.cat || 'ACOES') === abaAtiva);
+            ativos.forEach((item) => {
+                const idx = carteira.indexOf(item);
+                const cur = precos[item.t] || 0; 
+                const total = cleanNum(item.q) * cur; 
+                const lpa = cleanNum(item.l); 
+                const vpa = cleanNum(item.v); 
+                const div = cleanNum(item.d);
+                let indHtml = "";
+                const infoTxt = `<div class="text-slate-500 font-bold mb-1">[L: ${lpa.toFixed(2)} | V: ${vpa.toFixed(2)} | D: ${div.toFixed(2)}]</div>`;
+                if (item.cat === 'FIIS') {
+                    const pvp = (cur > 0 && vpa > 0) ? (cur / vpa).toFixed(2) : "0.00";
+                    const bazin = (div / 0.06);
+                    const mensalEst = (div / 12);
+                    indHtml = `${infoTxt}
+                               <div class="flex flex-col gap-0.5">
+                                 <div>P/VP: <b class="${pvp <= 1.05 ? 'text-green-700' : 'text-red-600'}">${pvp}</b></div>
+                                 <div>Bazin: <span class="${cur > bazin ? 'text-red-500 font-bold' : 'text-slate-900 font-bold'}">R$ ${bazin.toFixed(2)}</span></div>
+                                 <div class="text-[9px] text-blue-500 mt-1 italic font-bold">Média Mensal: R$ ${mensalEst.toFixed(2)}</div>
+                               </div>`;
+                } else {
+                    const graham = Math.sqrt(22.5 * lpa * vpa);
+                    const bazin = (div / 0.06);
+                    indHtml = `${infoTxt}
+                               <div class="flex flex-col gap-0.5">
+                                 <div>Graham: <span class="${cur > graham ? 'text-red-500 font-bold' : 'text-slate-900 font-bold'}">R$ ${graham.toFixed(2)}</span></div>
+                                 <div>Bazin: <span class="${cur > bazin ? 'text-red-500 font-bold' : 'text-slate-900 font-bold'}">R$ ${bazin.toFixed(2)}</span></div>
+                               </div>`;
+                }
+                container.innerHTML += `
+                <div class="card p-4 grid grid-cols-6 gap-4 items-center border-l-4 ${cur >= cleanNum(item.p) ? 'border-l-green-500' : 'border-l-red-500'} ativo-row">
+                    <div class="font-black text-blue-700 flex items-center gap-2">${item.t} <span class="text-[7px] bg-blue-100 text-blue-700 p-1 rounded font-black no-print">${item.cat || 'ACOES'}</span></div>
+                    <div class="mono text-[11px] text-slate-900">${item.q} UN</div>
+                    <div class="text-slate-900">R$ ${cleanNum(item.p).toFixed(2)}</div>
+                    <div class="text-blue-600">R$ ${cur.toFixed(2)}</div>
+                    <div class="text-slate-900">R$ ${total.toFixed(2)}</div>
+                    <div class="text-[10px] bg-slate-50 p-2 rounded flex justify-between items-start">
+                        <div class="flex flex-col leading-tight">${indHtml}</div>
+                        <div class="flex gap-2 no-print ml-2 shrink-0 pt-1">
+                            <button onclick="editarAtivo(${idx})" class="text-slate-900 hover:text-blue-600"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="delAtivo(${idx})" class="text-red-600 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            let pat = 0; carteira.forEach(i => pat += (cleanNum(i.q) * (precos[i.t] || 0)));
+            document.getElementById('total-pat').innerText = pat.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            const b = document.getElementById('lista-mercado'); b.innerHTML = "";
+            let tks = (abaAtiva === 'TUDO') ? [...new Set([...Object.keys(DB.ACOES), ...Object.keys(DB.FIIS)])] : Object.keys(DB[abaAtiva]);
+            tks.forEach(t => {
+                b.innerHTML += `<div class="p-2 border-b border-slate-200 flex justify-between items-center">
+                    <div><b class="text-slate-900">${t}</b><br><span class="text-blue-700 text-[10px]">R$ ${(precos[t] || 0).toFixed(2)}</span></div>
+                    <button onclick="document.getElementById('in-ticker').value='${t}'; autoPreencher('${t}'); toggleDrawer()" class="text-blue-600 hover:text-blue-800 text-lg font-black px-2">+</button>
+                </div>`;
+            });
+        }
+
+        function addAtivo() {
+            const t = document.getElementById('in-ticker').value.toUpperCase(), q = document.getElementById('in-qtd').value, p = document.getElementById('in-preco').value, l = document.getElementById('in-lpa').value, v = document.getElementById('in-vpa').value, d = document.getElementById('in-div').value, cat = document.getElementById('in-cat').value;
+            if(t && q) { 
+                carteira.push({t, q, p, l, v, d, cat}); 
+                localStorage.setItem('qt_full_cart', JSON.stringify(carteira)); fetchMercado();
+                ["in-ticker","in-qtd","in-preco","in-lpa","in-vpa","in-div"].forEach(id => { document.getElementById(id).value = ""; document.getElementById(id).style.borderColor = "#94a3b8"; });
+            }
+        }
+
+        function editarAtivo(i) {
+            const item = carteira[i];
+            document.getElementById('in-ticker').value = item.t; document.getElementById('in-qtd').value = item.q; document.getElementById('in-preco').value = item.p; document.getElementById('in-lpa').value = item.l; document.getElementById('in-vpa').value = item.v; document.getElementById('in-div').value = item.d; document.getElementById('in-cat').value = item.cat || 'ACOES';
+            carteira.splice(i, 1); updateUI(); autoPreencher(item.t);
+        }
+
+        function delAtivo(i) { if(confirm("Remover?")) { carteira.splice(i,1); localStorage.setItem('qt_full_cart', JSON.stringify(carteira)); updateUI(); } }
+        function salvarToken() { localStorage.setItem('qt_full_token', document.getElementById('api-token').value); fetchMercado(); }
+        function salvarPerfil() { 
+            const n = document.getElementById('u-name').value, c = document.getElementById('u-cpf').value;
+            localStorage.setItem('qt_full_u', n); localStorage.setItem('qt_full_c', c);
+            document.getElementById('print-name').innerText = n || "INVESTIDOR"; document.getElementById('print-cpf').innerText = c || "000.000.000-00";
+        }
+
+        function exportarCarteira() {
+            const agora = new Date(); const dataFmt = agora.toISOString().split('T')[0]; const horaFmt = agora.getHours().toString().padStart(2, '0') + 'h' + agora.getMinutes().toString().padStart(2, '0');
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(carteira));
+            const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `Quantum_Portfolio_${dataFmt}_${horaFmt}.json`); dl.click();
+        }
+
+        function importarCarteira(input) {
+            const reader = new FileReader();
+            reader.onload = () => { carteira = JSON.parse(reader.result); localStorage.setItem('qt_full_cart', JSON.stringify(carteira)); fetchMercado(); };
+            reader.readAsText(input.files[0]);
+        }
+
+        window.onload = () => {
+            document.getElementById('u-name').value = localStorage.getItem('qt_full_u') || ""; document.getElementById('u-cpf').value = localStorage.getItem('qt_full_c') || "";
+            document.getElementById('last-sync').innerText = localStorage.getItem('qt_last_sync_master') || "Nunca";
+            salvarPerfil(); if(localStorage.getItem('qt_full_token')) { document.getElementById('api-token').value = localStorage.getItem('qt_full_token'); fetchMercado(); }
+            setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR'); }, 1000);
+            updateUI();
+        };
+    </script>
+</body>
+</html>

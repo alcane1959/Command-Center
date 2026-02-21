@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FleetManager PRO | Backup Organizado</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        :root { --primary: #0f172a; --accent: #10b981; --info: #3b82f6; --warning: #f59e0b; --bg: #f8fafc; --border: #e2e8f0; --text-main: #334155; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text-main); }
+        .container { max-width: 1280px; margin: auto; }
+        .header-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid var(--border); padding-bottom: 20px; }
+        .logo { font-size: 24px; font-weight: 700; color: var(--primary); }
+        .logo span { color: var(--accent); }
+        .card { background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 24px; border: 1px solid var(--border); }
+        .flex-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: flex-end; }
+        .input-group { flex: 1; min-width: 140px; display: flex; flex-direction: column; }
+        label { font-weight: 700; font-size: 10px; margin-bottom: 4px; color: #64748b; text-transform: uppercase; }
+        input, select, textarea { padding: 9px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+        .btn { padding: 9px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-accent { background: var(--accent); color: white; }
+        .btn-info { background: #eff6ff; color: var(--info); border: 1px solid #dbeafe; }
+        .btn-warning { background: #fffbeb; color: var(--warning); border: 1px solid #fef3c7; }
+        .btn-save { background: var(--accent); color: white; }
+        .veiculo-bloco { background: white; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--border); overflow: hidden; }
+        .veiculo-header { background: #ffffff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .veiculo-content { display: none; border-top: 1px solid var(--border); }
+        .veiculo-bloco.active .veiculo-content { display: block; }
+        .arrow-icon { transition: transform 0.3s; display: inline-block; margin-right: 10px; font-size: 10px; }
+        .veiculo-bloco.active .arrow-icon { transform: rotate(180deg); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; text-align: left; padding: 12px; font-size: 10px; text-transform: uppercase; color: #64748b; border-bottom: 1px solid var(--border); }
+        td { padding: 10px 12px; border-bottom: 1px solid #f8fafc; font-size: 13px; }
+        .edit-mode-input { border: 1.5px solid var(--info) !important; background: #f0f9ff !important; font-size: 12px !important; padding: 5px !important; }
+        .uppercase { text-transform: uppercase; }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body>
+
+<div class="container no-print">
+    <header class="header-main">
+        <div class="logo">FleetManager <span>PRO</span></div>
+        <div style="display:flex; gap:10px">
+            <button class="btn btn-primary" onclick="exportarDados()">💾 Exportar</button>
+            <label class="btn btn-info" style="cursor:pointer">📂 Importar <input type="file" id="importFile" style="display:none" onchange="importarDados(event)"></label>
+        </div>
+    </header>
+
+    <section class="card">
+        <h2>🚗 Cadastro de Veículo</h2>
+        <div class="flex-row">
+            <div class="input-group" style="flex: 2;"><label>Modelo</label><input type="text" id="cadModelo" class="uppercase"></div>
+            <div class="input-group" style="flex: 2;"><label>Proprietário</label><input type="text" id="cadDono" class="uppercase"></div>
+            <div class="input-group"><label>Cor</label><input type="text" id="cadCor" class="uppercase"></div>
+            <div class="input-group" style="max-width: 70px;"><label>Ano</label><input type="text" id="cadAno"></div>
+            <div class="input-group" style="max-width: 90px;"><label>KM Inicial</label><input type="number" id="cadKMIni"></div>
+            <div class="input-group" style="max-width: 120px;"><label>Placa</label><input type="text" id="cadPlaca" class="uppercase" maxlength="8" oninput="this.value = aplicarMascaraPlaca(this.value)"></div>
+            <button class="btn btn-accent" onclick="cadastrarVeiculo()">+ Cadastrar</button>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>🔧 Novo Lançamento</h2>
+        <div class="flex-row">
+            <div class="input-group"><label>Veículo</label><select id="selectVeiculo"><option value="">-- Selecione --</option></select></div>
+            <div class="input-group"><label>Data</label><input type="date" id="servData"></div>
+            <div class="input-group"><label>Categoria</label>
+                <select id="servCat">
+                    <option value="Manutenção">MANUTENÇÃO</option>
+                    <option value="Combustível">COMBUSTÍVEL</option>
+                    <option value="Pedágio">PEDÁGIO</option>
+                    <option value="IPVA">IPVA</option>
+                    <option value="Licenciamento">LICENCIAMENTO</option>
+                    <option value="Seguro">SEGURO</option>
+                    <option value="Multa">MULTA</option>
+                </select>
+            </div>
+            <div class="input-group"><label>KM Atual</label><input type="number" id="servKM"></div>
+        </div>
+        <div class="flex-row">
+            <div class="input-group" style="flex: 1.5;"><label>Prestador</label><input type="text" id="servResponsavel" class="uppercase"></div>
+            <div class="input-group"><label>Peças (R$)</label><input type="number" id="servPecas" step="0.01" value="0.00"></div>
+            <div class="input-group"><label>Mão de Obra (R$)</label><input type="number" id="servMaoObra" step="0.01" value="0.00"></div>
+            <div class="input-group" style="flex: 2;"><label>Descrição</label><textarea id="servDesc" rows="1"></textarea></div>
+            <button class="btn btn-accent" onclick="lancarServico()">✅ Salvar</button>
+        </div>
+    </section>
+</div>
+
+<main id="relatorios" class="container"></main>
+
+<script>
+    const STORAGE_KEY = 'frota_db_v32_final';
+    let dados = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { veiculos: [] };
+    let editandoId = { veiculo: null, servico: null };
+    let blocosAbertos = new Set();
+
+    document.getElementById('servData').valueAsDate = new Date();
+
+    function aplicarMascaraPlaca(v) {
+        v = v.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (v.length > 3) v = v.substring(0, 3) + '-' + v.substring(3, 7);
+        return v;
+    }
+
+    function toggleAccordion(id) {
+        if (event.target.closest('.btn') || event.target.closest('input') || event.target.closest('textarea')) return;
+        blocosAbertos.has(id) ? blocosAbertos.delete(id) : blocosAbertos.add(id);
+        renderizarRelatorios();
+    }
+
+    function salvarEAtualizar() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+        renderizarSelect();
+        renderizarRelatorios();
+    }
+
+    function cadastrarVeiculo() {
+        const m = document.getElementById('cadModelo').value;
+        const p = document.getElementById('cadPlaca').value;
+        if(!m || !p) return alert("Modelo e Placa são obrigatórios!");
+        const novoId = Date.now();
+        dados.veiculos.push({ id: novoId, modelo: m.toUpperCase(), proprietario: document.getElementById('cadDono').value.toUpperCase(), cor: document.getElementById('cadCor').value.toUpperCase(), ano: document.getElementById('cadAno').value, kmIni: document.getElementById('cadKMIni').value || 0, placa: aplicarMascaraPlaca(p), registros: [] });
+        blocosAbertos.add(novoId);
+        salvarEAtualizar();
+        ['cadModelo', 'cadDono', 'cadCor', 'cadAno', 'cadPlaca', 'cadKMIni'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    function toggleEdicaoVeiculo(e, id) {
+        e.stopPropagation();
+        if(editandoId.veiculo === id) {
+            const vIdx = dados.veiculos.findIndex(v => v.id == id);
+            dados.veiculos[vIdx].modelo = document.getElementById(`editMod-${id}`).value.toUpperCase();
+            dados.veiculos[vIdx].placa = aplicarMascaraPlaca(document.getElementById(`editPlaca-${id}`).value);
+            dados.veiculos[vIdx].proprietario = document.getElementById(`editProp-${id}`).value.toUpperCase();
+            dados.veiculos[vIdx].cor = document.getElementById(`editCor-${id}`).value.toUpperCase();
+            dados.veiculos[vIdx].ano = document.getElementById(`editAno-${id}`).value;
+            dados.veiculos[vIdx].kmIni = document.getElementById(`editKMIni-${id}`).value;
+            editandoId.veiculo = null;
+            salvarEAtualizar();
+        } else { editandoId.veiculo = id; renderizarRelatorios(); }
+    }
+
+    function toggleEdicaoServico(e, vId, sId) {
+        e.stopPropagation();
+        if(editandoId.servico === sId) {
+            const vIdx = dados.veiculos.findIndex(v => v.id == vId);
+            const sIdx = dados.veiculos[vIdx].registros.findIndex(s => s.id == sId);
+            const reg = dados.veiculos[vIdx].registros[sIdx];
+            reg.data = document.getElementById(`editSData-${sId}`).value.split('-').reverse().join('/');
+            reg.responsavel = document.getElementById(`editSResp-${sId}`).value.toUpperCase();
+            reg.km = document.getElementById(`editSKM-${sId}`).value;
+            reg.pecas = parseFloat(document.getElementById(`editSPec-${sId}`).value) || 0;
+            reg.maoObra = parseFloat(document.getElementById(`editSMao-${sId}`).value) || 0;
+            reg.total = reg.pecas + reg.maoObra;
+            reg.desc = document.getElementById(`editSDesc-${sId}`).value;
+            editandoId.servico = null;
+            salvarEAtualizar();
+        } else { editandoId.servico = sId; renderizarRelatorios(); }
+    }
+
+    function renderizarRelatorios() {
+        const container = document.getElementById('relatorios');
+        container.innerHTML = '';
+        dados.veiculos.forEach(v => {
+            let totalV = 0;
+            const isOpen = blocosAbertos.has(v.id);
+            const isEditV = editandoId.veiculo === v.id;
+            let linhas = v.registros.map(r => {
+                totalV += r.total;
+                const isEditS = editandoId.servico === r.id;
+                if(isEditS) {
+                    return `<tr><td colspan="7">
+                        <div class="flex-row" style="background:#f0f9ff; padding:10px; border-radius:8px">
+                            <div class="input-group"><label>Data</label><input type="date" id="editSData-${r.id}" value="${r.data.split('/').reverse().join('-')}" class="edit-mode-input"></div>
+                            <div class="input-group"><label>Prestador</label><input type="text" id="editSResp-${r.id}" value="${r.responsavel}" class="edit-mode-input uppercase"></div>
+                            <div class="input-group" style="max-width:80px"><label>KM</label><input type="number" id="editSKM-${r.id}" value="${r.km}" class="edit-mode-input"></div>
+                            <div class="input-group" style="max-width:100px"><label>Peças</label><input type="number" id="editSPec-${r.id}" value="${r.pecas}" class="edit-mode-input"></div>
+                            <div class="input-group" style="max-width:100px"><label>M. Obra</label><input type="number" id="editSMao-${r.id}" value="${r.maoObra}" class="edit-mode-input"></div>
+                            <button class="btn btn-save" onclick="toggleEdicaoServico(event, ${v.id}, ${r.id})">💾</button>
+                        </div>
+                        <textarea id="editSDesc-${r.id}" class="edit-mode-input" style="width:100%; margin-top:5px" placeholder="Descrição">${r.desc}</textarea>
+                    </td></tr>`;
+                }
+                return `<tr>
+                    <td>${r.data}</td><td><b>${r.categoria}</b></td><td>${r.responsavel}</td><td>${r.km || '-'}</td>
+                    <td>R$ ${r.pecas.toLocaleString('pt-br',{minimumFractionDigits:2})}</td><td>R$ ${r.maoObra.toLocaleString('pt-br',{minimumFractionDigits:2})}</td>
+                    <td class="no-print" style="text-align:right">
+                        <button class="btn btn-info" style="padding:4px" onclick="imprimirRelatorioUnico(event, ${v.id}, ${r.id})">🖨️</button>
+                        <button class="btn btn-warning" style="padding:4px" onclick="toggleEdicaoServico(event, ${v.id}, ${r.id})">✏️</button>
+                        <button onclick="excluirItem(event, ${v.id}, ${r.id})" style="color:red; background:none; border:none; cursor:pointer; margin-left:8px">🗑️</button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            container.innerHTML += `
+                <div class="veiculo-bloco ${isOpen ? 'active' : ''}">
+                    <div class="veiculo-header" onclick="toggleAccordion(${v.id})">
+                        <div style="display:flex; align-items:center; gap:10px; flex:1">
+                            <span class="arrow-icon">▼</span>
+                            ${isEditV ? 
+                                `<div class="flex-row" style="margin-bottom:0" onclick="event.stopPropagation()">
+                                    <input type="text" id="editMod-${v.id}" value="${v.modelo}" class="edit-mode-input uppercase" style="width:140px">
+                                    <input type="text" id="editPlaca-${v.id}" value="${v.placa}" class="edit-mode-input uppercase" style="width:90px" oninput="this.value = aplicarMascaraPlaca(this.value)">
+                                    <input type="text" id="editProp-${v.id}" value="${v.proprietario}" class="edit-mode-input uppercase" style="width:140px">
+                                    <input type="text" id="editCor-${v.id}" value="${v.cor}" class="edit-mode-input uppercase" style="width:80px">
+                                    <input type="text" id="editAno-${v.id}" value="${v.ano}" class="edit-mode-input" style="width:60px">
+                                    <input type="number" id="editKMIni-${v.id}" value="${v.kmIni || 0}" class="edit-mode-input" style="width:80px">
+                                </div>` :
+                                `<strong>${v.modelo}</strong> <span style="font-size:12px; color:#666">[${v.placa}] - ${v.proprietario} - ${v.cor} - Ano: ${v.ano} - KM Inicial: ${v.kmIni || 0}</span>`
+                            }
+                        </div>
+                        <div class="no-print" style="display:flex; align-items:center; gap:12px">
+                            <span style="color:var(--accent); font-weight:700">R$ ${totalV.toLocaleString('pt-br',{minimumFractionDigits:2})}</span>
+                            <button class="btn btn-info" onclick="imprimirRelatorioCompleto(event, ${v.id})">🖨️</button>
+                            <button class="btn ${isEditV?'btn-save':'btn-warning'}" onclick="toggleEdicaoVeiculo(event, ${v.id})">${isEditV?'💾 Salvar':'✏️ Editar'}</button>
+                            <button onclick="removerVeiculo(event, ${v.id})" style="color:red; background:none; border:none; cursor:pointer">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="veiculo-content">
+                        <table>
+                            <thead><tr><th>Data</th><th>Tipo</th><th>Prestador</th><th>KM</th><th>Peças</th><th>Mão Obra</th><th class="no-print"></th></tr></thead>
+                            <tbody>${linhas || '<tr><td colspan="7" style="text-align:center; padding:15px">Vazio</td></tr>'}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function imprimirRelatorioUnico(e, vId, sId) {
+        e.stopPropagation();
+        const v = dados.veiculos.find(ve => ve.id == vId);
+        const s = v.registros.find(re => re.id == sId);
+        const html = `<div style="padding:40px; font-family:sans-serif; border:2px solid #000;"><h1 style="text-align:center; text-transform:uppercase; border-bottom:2px solid #000;">Relatório de Manutenção</h1><p><strong>VEÍCULO:</strong> ${v.modelo} | <strong>PLACA:</strong> ${v.placa}</p><p><strong>COR:</strong> ${v.cor} | <strong>ANO:</strong> ${v.ano} | <strong>KM INICIAL:</strong> ${v.kmIni || 0}</p><p><strong>PROPRIETÁRIO:</strong> ${v.proprietario}</p><hr><p><strong>DATA:</strong> ${s.data} | <strong>KM:</strong> ${s.km || '---'}</p><p><strong>CATEGORIA:</strong> ${s.categoria} | <strong>PRESTADOR:</strong> ${s.responsavel}</p><div style="background:#f4f4f4; padding:15px; border:1px solid #ccc; white-space: pre-line;"><strong>DESCRIÇÃO:</strong><br>${s.desc}</div><p style="font-size:1.2em"><strong>TOTAL: R$ ${s.total.toLocaleString('pt-br',{minimumFractionDigits:2})}</strong></p></div>`;
+        const win = window.open('', '_blank'); win.document.write(html); win.document.close(); win.print(); win.close();
+    }
+
+    function imprimirRelatorioCompleto(e, vId) {
+        e.stopPropagation();
+        const v = dados.veiculos.find(ve => ve.id == vId);
+        let totalGeral = 0;
+        let tabela = v.registros.map(r => { totalGeral += r.total; return `<tr><td style="border:1px solid #000; padding:6px">${r.data}</td><td style="border:1px solid #000; padding:6px">${r.categoria}</td><td style="border:1px solid #000; padding:6px">${r.responsavel}</td><td style="border:1px solid #000; padding:6px">${r.km || '-'}</td><td style="border:1px solid #000; padding:6px">R$ ${r.total.toLocaleString('pt-br',{minimumFractionDigits:2})}</td></tr>`; }).join('');
+        let detalhado = v.registros.map(r => { return `<div style="margin-bottom:15px; border-bottom:1px dashed #ccc; padding-bottom:5px"><p style="margin:2px 0"><strong>${r.data} - ${r.categoria} (${r.responsavel}):</strong></p><p style="margin:2px 0; font-style:italic; white-space: pre-line;">${r.desc || 'Sem descrição.'}</p></div>`; }).join('');
+        const html = `<div style="padding:30px; font-family:sans-serif;"><h1 style="text-align:center; margin-bottom:5px">Relatório de Frota</h1><p style="text-align:center; margin-top:0"><strong>VEÍCULO:</strong> ${v.modelo} [${v.placa}] - ${v.cor} - Ano: ${v.ano} - KM Inicial: ${v.kmIni || 0}</p><p style="text-align:center;"><strong>PROPRIETÁRIO:</strong> ${v.proprietario}</p><h3 style="background:#eee; padding:5px; border:1px solid #000">1. RESUMO SIMPLIFICADO</h3><table style="width:100%; border-collapse:collapse; margin-bottom:30px"><thead><tr style="background:#f4f4f4"><th style="border:1px solid #000; padding:6px">Data</th><th style="border:1px solid #000; padding:6px">Tipo</th><th style="border:1px solid #000; padding:6px">Prestador</th><th style="border:1px solid #000; padding:6px">KM</th><th style="border:1px solid #000; padding:6px">Valor</th></tr></thead><tbody>${tabela}</tbody></table><p style="text-align:right; font-size:1.2em"><strong>TOTAL ACUMULADO: R$ ${totalGeral.toLocaleString('pt-br',{minimumFractionDigits:2})}</strong></p><h3 style="background:#eee; padding:5px; border:1px solid #000; margin-top:40px;">2. HISTÓRICO DETALHADO (DESCRIÇÕES)</h3><div style="font-size: 0.9em">${detalhado}</div></div>`;
+        const win = window.open('', '_blank'); win.document.write(`<html><head><title>Relatorio_${v.placa}</title></head><body>${html}</body></html>`); win.document.close(); win.print(); win.close();
+    }
+
+    function lancarServico() {
+        const vId = document.getElementById('selectVeiculo').value;
+        if(!vId) return alert("Selecione um veículo!");
+        const vIdx = dados.veiculos.findIndex(v => v.id == vId);
+        const p = parseFloat(document.getElementById('servPecas').value) || 0;
+        const m = parseFloat(document.getElementById('servMaoObra').value) || 0;
+        dados.veiculos[vIdx].registros.unshift({ id: Date.now(), data: document.getElementById('servData').value.split('-').reverse().join('/'), categoria: document.getElementById('servCat').value, responsavel: document.getElementById('servResponsavel').value.toUpperCase(), km: document.getElementById('servKM').value, pecas: p, maoObra: m, total: p + m, desc: document.getElementById('servDesc').value });
+        blocosAbertos.add(Number(vId));
+        salvarEAtualizar();
+        ['servDesc', 'servKM', 'servResponsavel'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    function exportarDados() { 
+        const agora = new Date();
+        const dataFormatada = agora.toISOString().split('T')[0];
+        const horaFormatada = String(agora.getHours()).padStart(2, '0') + '-' + String(agora.getMinutes()).padStart(2, '0');
+        const blob = new Blob([JSON.stringify(dados)], {type: 'application/json'}); 
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(blob); 
+        a.download = `backup_frota_${dataFormatada}_${horaFormatada}.json`; 
+        a.click(); 
+    }
+
+    function renderizarSelect() { const s = document.getElementById('selectVeiculo'); s.innerHTML = '<option value="">-- Selecione --</option>'; dados.veiculos.forEach(v => s.innerHTML += `<option value="${v.id}">${v.modelo} [${v.placa}]</option>`); }
+    function excluirItem(e, vId, rId) { e.stopPropagation(); if(confirm("Excluir?")) { const vIdx = dados.veiculos.findIndex(v => v.id == vId); dados.veiculos[vIdx].registros = dados.veiculos[vIdx].registros.filter(r => r.id != rId); salvarEAtualizar(); } }
+    function removerVeiculo(e, id) { e.stopPropagation(); if(confirm("Excluir Veículo?")) { dados.veiculos = dados.veiculos.filter(v => v.id != id); salvarEAtualizar(); } }
+    function importarDados(e) { const reader = new FileReader(); reader.onload = (ev) => { try { dados = JSON.parse(ev.target.result); salvarEAtualizar(); } catch { alert("Erro!"); } }; reader.readAsText(e.target.files[0]); }
+    salvarEAtualizar();
+</script>
+</body>
+</html>
