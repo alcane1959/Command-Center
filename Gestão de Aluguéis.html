@@ -56,7 +56,6 @@
             .no-print { display: none !important; }
             #print-area { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
             
-            /* ESTILO DO DEMONSTRATIVO ORIGINAL PRESERVADO */
             .demo-wrapper { border: 1.5px solid #333; padding: 40px; width: 270mm; margin: 0 auto; background: #fff; box-sizing: border-box; }
             .demo-header { display: flex; justify-content: space-between; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 25px; }
             .demo-header h1 { margin: 0; font-size: 1.4rem; text-transform: uppercase; color: #000; letter-spacing: 1px; }
@@ -70,7 +69,6 @@
             .signature-name { font-family: 'Lucida Handwriting', 'Brush Script MT', cursive !important; font-size: 1.8rem; color: #000; margin-bottom: 0; }
             .signature-line { border-top: 1px solid #000; width: 320px; margin: 0 auto; }
             
-            /* ESTILO DO RELATÓRIO - MARGENS MÍNIMAS (SEM SOMBRA) */
             @page { margin: 5mm; } 
             .rep-container { box-shadow: none !important; border: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; background: white; }
         }
@@ -164,6 +162,7 @@
             <td class="row-total" style="font-weight:bold; font-size: 0.8rem;">R$ 0,00</td>
             <td>
                 <button class="btn-demo-row" onclick="gerarDemonstrativo(this.closest('tr').rowIndex - 1)">Demonstrativo</button>
+                <button class="btn-demo-row" style="background: #8e44ad;" onclick="gerarExtratoIndividual(this.closest('tr').rowIndex - 1)">Extrato Anual</button>
                 <div class="row-controls">
                     <button class="btn-icon add" title="Adicionar Linha" onclick="addRow(this)">➕</button>
                     <button class="btn-icon save" title="Salvar" onclick="saveData(true)">✅</button>
@@ -265,7 +264,6 @@
 
     function clearCurrentMonth() { if(confirm(`Limpar ${meses[currentMonthIdx]}?`)) { localStorage.removeItem(`data_${currentYear}_mes_${currentMonthIdx}`); loadMonthData(currentMonthIdx); updateAnnualTotal(); } }
     
-    /* FUNÇÃO DE EXPORTAÇÃO COM NOME PERSONALIZADO */
     function exportBackup() { 
         saveData(false); 
         let b = {}; 
@@ -273,15 +271,11 @@
             let k = localStorage.key(i); 
             if (k.startsWith('data_') || k === 'locador_nome' || k === 'selected_year') b[k] = localStorage.getItem(k); 
         } 
-        
         const agora = new Date();
         const dataStr = agora.getDate().toString().padStart(2, '0') + "-" + (agora.getMonth()+1).toString().padStart(2,'0');
         const horaStr = agora.getHours().toString().padStart(2, '0') + "h" + agora.getMinutes().toString().padStart(2, '0');
-        
         const blob = new Blob([JSON.stringify(b, null, 2)], { type: 'application/json' }); 
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
-        
-        // Nome solicitado: backup_alugueis_ANO_DIA-MES-HORA-MINUTOS.json
         a.download = `backup_alugueis_${currentYear}_${dataStr}_${horaStr}.json`; 
         a.click(); 
     }
@@ -335,6 +329,73 @@
             ${reajuste ? `<p style="color: #d35400; font-weight: bold; margin-top: 10px;">⚠️ MÊS DE REAJUSTE: ${reajuste.toUpperCase()}</p>` : ''}
             <div class="signature-block"><p class="signature-name">${locador}</p><div class="signature-line"></div></div>
         </div>`;
+        window.print();
+    }
+
+    function gerarExtratoIndividual(rowIdx) {
+        saveData(false);
+        const rows = document.querySelectorAll('#rent-rows tr');
+        const nomeInquilino = rows[rowIdx].querySelector('.in-name').value;
+        if(!nomeInquilino) return alert("Por favor, preencha o nome do inquilino primeiro.");
+
+        let htmlExtrato = `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; max-width: 800px; margin: auto; color: #333;">
+                <div style="border-bottom: 2px solid #1a2a3a; padding-bottom: 10px; margin-bottom: 20px; text-align: center;">
+                    <h2 style="margin: 0; text-transform: uppercase; color: #1a2a3a;">Extrato Anual de Recebimentos</h2>
+                </div>
+                <p style="margin: 5px 0;"><strong>LOCADOR:</strong> ${(document.getElementById('locador-nome').value || 'Não informado').toUpperCase()}</p>
+                <p style="margin: 5px 0;"><strong>INQUILINO:</strong> ${nomeInquilino.toUpperCase()}</p>
+                <p style="margin: 5px 0;"><strong>ANO DE REFERÊNCIA:</strong> ${currentYear}</p>
+                <br>
+                <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background: #1a2a3a; color: white;">
+                            <th style="padding:12px; text-align:left; font-size: 0.8rem; border: 1px solid #1a2a3a;">MÊS</th>
+                            <th style="padding:12px; text-align:center; font-size: 0.8rem; border: 1px solid #1a2a3a;">DATA PGTO</th>
+                            <th style="padding:12px; text-align:right; font-size: 0.8rem; border: 1px solid #1a2a3a;">TOTAL PAGO</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        let totalAnual = 0;
+        let encontrouDados = false;
+
+        for(let i=0; i<12; i++) {
+            const dadosMes = JSON.parse(localStorage.getItem(`data_${currentYear}_mes_${i}`) || '[]');
+            const registro = dadosMes.find(r => r.n && r.n.trim().toUpperCase() === nomeInquilino.trim().toUpperCase());
+            if(registro) {
+                encontrouDados = true;
+                const v = (parseFloat(registro.v)||0) + (parseFloat(registro.e)||0);
+                totalAnual += v;
+                htmlExtrato += `
+                    <tr>
+                        <td style="padding:10px; border: 1px solid #ccc; font-weight: bold;">${meses[i].toUpperCase()}</td>
+                        <td style="padding:10px; border: 1px solid #ccc; text-align:center;">${registro.d ? registro.d.split('-').reverse().join('/') : '--'}</td>
+                        <td style="padding:10px; border: 1px solid #ccc; text-align:right; font-weight: bold;">
+                            ${v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
+                        </td>
+                    </tr>`;
+            }
+        }
+
+        if(!encontrouDados) return alert("Nenhum dado encontrado para este inquilino neste ano.");
+
+        htmlExtrato += `
+                    <tr style="background:#f2f2f2;">
+                        <td colspan="2" style="padding:15px; text-align:right; font-weight:bold; border: 1px solid #ccc;">TOTAL ACUMULADO NO ANO:</td>
+                        <td style="padding:15px; text-align:right; font-weight:bold; font-size: 1.1rem; color: #1a2a3a; border: 1px solid #ccc;">${totalAnual.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 0.75rem; color: #666; text-align: center;">
+                <p>Este documento serve como extrato de conferência para o ano de ${currentYear}.</p>
+                <p>Gerado em: ${new Date().toLocaleDateString()} às ${new Date().toLocaleTimeString()}</p>
+            </div>
+        </div>`;
+
+        // CIRURGIA: Em vez de window.open, usa a área de impressão da página
+        const area = document.getElementById('print-area');
+        area.innerHTML = htmlExtrato;
         window.print();
     }
 
