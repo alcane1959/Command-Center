@@ -4,35 +4,42 @@
     <meta charset="UTF-8">
     <title>Gestão Financeira Global - Master</title>
     <style>
+        /* Estilos Gerais */
         body { font-family: 'Segoe UI', sans-serif; background: #eceff1; margin: 20px; color: #333; }
         .container { max-width: 1150px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         
-        .year-selector { background: #3498db; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px; }
-        .year-selector select { padding: 8px; border-radius: 4px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; }
+        /* Seletor de Ano */
+        .year-selector { background: #f8f9fa; color: #2c3e50; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px; border: 1px solid #ddd; }
+        .year-selector select { padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; font-weight: bold; cursor: pointer; }
 
-        .btn-report { background: #f39c12; width: 100%; padding: 12px; border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; margin-bottom: 15px; }
-        .global-dashboard { background: #2c3e50; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: none; }
-        .grid-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .stat-card { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; text-align: center; }
-        .stat-card h4 { margin: 0; font-size: 11px; text-transform: uppercase; color: #bdc3c7; }
-        .stat-card .big-val { font-size: 22px; font-weight: bold; margin-top: 5px; }
-
+        /* Barra de Ferramentas */
         .toolbar { margin-bottom: 20px; display: flex; gap: 8px; flex-wrap: wrap; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
-        button.tool { padding: 8px 12px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; font-size: 13px; }
-        .btn-add-main { background: #27ae60; font-size: 15px !important; }
-        .btn-save { background: #3498db; }
-        .btn-copy { background: #34495e; }
-        .btn-clear-month { background: #e67e22; }
-        .btn-util { background: #7f8c8d; }
-        .btn-print-page { background: #9b59b6; }
-
-        .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 15px; }
-        .tab-btn { padding: 8px 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-radius: 4px; flex: 1; }
-        .tab-btn.active { background: #3498db; color: white; font-weight: bold; border: none; }
+        button.tool { 
+            padding: 8px 15px; 
+            cursor: pointer; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            color: #444; 
+            background: #fff; 
+            font-weight: 500; 
+            font-size: 13px; 
+            transition: all 0.2s; 
+        }
+        button.tool:hover { background: #f1f2f6; border-color: #999; }
         
+        .btn-save:hover { border-color: #3498db; color: #3498db; }
+        .btn-clear-month:hover { border-color: #e67e22; color: #e67e22; }
+
+        /* Abas Mensais */
+        .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 15px; }
+        .tab-btn { padding: 8px 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-radius: 4px; flex: 1; transition: 0.2s; }
+        .tab-btn:hover { background: #f8f9fa; }
+        .tab-btn.active { background: #2c3e50; color: white; font-weight: bold; border: none; }
+        
+        /* Tabela */
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f1f2f6; padding: 10px; font-size: 13px; text-align: left; }
+        th { background: #f1f2f6; padding: 10px; font-size: 13px; text-align: left; color: #666; }
         td { border-bottom: 1px solid #eee; padding: 0; }
         input { width: 100%; border: none; outline: none; padding: 10px; box-sizing: border-box; background: transparent; }
         
@@ -47,38 +54,49 @@
         .footer-totals { background: #f8f9fa; padding: 12px; border-radius: 0 0 12px 12px; border: 1px solid #ddd; border-top: none; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
         
         #fileInput { display: none; }
+
+        /* REGRAS DE IMPRESSÃO COM ESCALA DE 90% */
+        @media print {
+            body { background: white; margin: 0; padding: 0; }
+            .container { 
+                box-shadow: none; 
+                border: none; 
+                width: 100%; 
+                max-width: 100%; 
+                margin: 0; 
+                padding: 0;
+                /* Aplica a escala de 90% */
+                transform: scale(0.9);
+                transform-origin: top left;
+                width: 111.11%; /* Compensa o encolhimento para ocupar a largura da página */
+            }
+            .year-selector, .toolbar, .tabs, .action-cell, th:last-child, td:last-child { display: none !important; }
+            h2::after { content: " - Relatório Mensal"; }
+            table { border: 1px solid #000; width: 100%; }
+            th { border-bottom: 2px solid #000; color: black; }
+            td { border-bottom: 1px solid #ccc; }
+            input { color: black !important; }
+            .status-cell { background: none !important; border-left: 1px solid #eee; }
+        }
     </style>
 </head>
 <body onbeforeunload="saveDataSilent()" onunload="saveDataSilent()">
 
 <div class="container">
-    <h2>💰 Gestão Financeira Global</h2>
+    <h2 id="tituloPrincipal">💰 Gestão Financeira Global</h2>
 
     <div class="year-selector">
         <label>Selecione o Ano:</label>
         <select id="selectAno" onchange="changeYear()"></select>
     </div>
-    
-    <div style="display: flex; gap: 10px;">
-        <button class="btn-report" onclick="toggleGlobalReport()" style="flex: 2;">📊 VER DASHBOARD RÁPIDO</button>
-        <button class="btn-report btn-print-page" onclick="imprimirRelatorioAnual()" style="flex: 1;">📄 RELATÓRIO PARA IMPRESSÃO</button>
-    </div>
-
-    <div id="globalReport" class="global-dashboard">
-        <div class="grid-stats">
-            <div class="stat-card"><h4>Entradas Anuais</h4><div id="gEnt" class="big-val" style="color: #2ecc71;">R$ 0,00</div></div>
-            <div class="stat-card"><h4>Saídas Anuais</h4><div id="gSai" class="big-val" style="color: #e74c3c;">R$ 0,00</div></div>
-            <div class="stat-card" style="background: rgba(255,255,255,0.2);"><h4>Saldo Total</h4><div id="gSal" class="big-val">R$ 0,00</div></div>
-        </div>
-    </div>
 
     <div class="toolbar">
-        <button class="tool btn-add-main" onclick="adicionarLinhaFinal()">➕ Nova Linha no Final</button>
         <button class="tool btn-save" onclick="saveData()">💾 Salvar</button>
         <button class="tool btn-copy" id="btnCopy" onclick="copyPreviousMonth()">📋 Copiar Mês Anterior</button>
         <button class="tool btn-clear-month" onclick="limparMesInteiro()">🧹 Limpar Mês Atual</button>
         <button class="tool btn-util" onclick="exportBackup()">📥 Backup</button>
         <button class="tool btn-util" onclick="document.getElementById('fileInput').click()">📤 Restaurar</button>
+        <button class="tool btn-print-tool" onclick="window.print()">📄 Imprimir Mês Atual</button>
         <input type="file" id="fileInput" onchange="importBackup(event)" accept=".txt">
     </div>
 
@@ -133,12 +151,6 @@
             if(!fullDB[year][m]) fullDB[year][m] = [];
             while(fullDB[year][m].length < 10) fullDB[year][m].push({d:'', desc:'', e:'', s:''});
         });
-    }
-
-    function adicionarLinhaFinal() {
-        fullDB[currentYear][currentMonth].push({d:'', desc:'', e:'', s:''});
-        renderTable();
-        saveDataSilent();
     }
 
     function inserirLinhaNoMeio(index) {
@@ -206,7 +218,6 @@
             }
         });
         document.getElementById('labelMensal').innerText = `${currentMonth}/${currentYear} -> Entradas: R$ ${format(tEnt)} | Saídas: R$ ${format(tSai)} | Saldo: R$ ${format(tEnt-tSai)}`;
-        if(document.getElementById('globalReport').style.display === 'block') updateGlobalStats();
     }
 
     function renderTable() {
@@ -228,84 +239,6 @@
             body.appendChild(tr);
         });
         recalculate();
-    }
-
-    function toggleGlobalReport() {
-        const report = document.getElementById('globalReport');
-        report.style.display = (report.style.display === 'block') ? 'none' : 'block';
-        if(report.style.display === 'block') updateGlobalStats();
-    }
-
-    function updateGlobalStats() {
-        let totalE = 0, totalS = 0;
-        months.forEach(m => {
-            if(fullDB[currentYear][m]) fullDB[currentYear][m].forEach(row => { totalE += parseFloat(row.e || 0); totalS += parseFloat(row.s || 0); });
-        });
-        document.getElementById('gEnt').innerText = "R$ " + format(totalE);
-        document.getElementById('gSai').innerText = "R$ " + format(totalS);
-        const balanco = totalE - totalS;
-        document.getElementById('gSal').innerText = "R$ " + format(balanco);
-        document.getElementById('gSal').style.color = balanco >= 0 ? "#2ecc71" : "#e74c3c";
-    }
-
-    function imprimirRelatorioAnual() {
-        const win = window.open('', '_blank');
-        let totalE_Ano = 0, totalS_Ano = 0;
-        let html = `
-        <html><head><title>Relatório Financeiro Anual ${currentYear}</title>
-        <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #333; }
-            h1 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
-            h3 { text-align: center; color: #7f8c8d; margin-top: 0; margin-bottom: 30px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-            th, td { border: 1px solid #ddd; padding: 12px; text-align: right; }
-            th { background: #34495e; color: white; text-align: center; text-transform: uppercase; font-size: 14px; }
-            tr:nth-child(even) { background-color: #f9f9f9; }
-            .mes-nome { text-align: left; font-weight: bold; background: #f1f2f6; }
-            .total-final { background: #2c3e50 !important; color: white; font-weight: bold; font-size: 16px; }
-            .positivo { color: #27ae60; } .negativo { color: #e74c3c; }
-            .print-header { text-align: center; margin-bottom: 20px; }
-            .btn-print-now { background: #27ae60; color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
-            .btn-print-now:hover { background: #219150; transform: translateY(-2px); }
-            @media print { .no-print { display: none !important; } body { padding: 0; } table { box-shadow: none; } }
-        </style>
-        </head><body>
-            <div class="print-header no-print">
-                <button class="btn-print-now" onclick="window.print()">🖨️ IMPRIMIR RELATÓRIO AGORA</button>
-            </div>
-            <h1>Resumo Financeiro Anual</h1>
-            <h3>Ano Base: ${currentYear}</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th style="text-align:left">Mês</th>
-                        <th>Entradas</th>
-                        <th>Saídas</th>
-                        <th>Saldo Mensal</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-        months.forEach(m => {
-            let eMes = 0, sMes = 0;
-            if(fullDB[currentYear][m]) fullDB[currentYear][m].forEach(row => { eMes += parseFloat(row.e || 0); sMes += parseFloat(row.s || 0); });
-            let saldo = eMes - sMes; totalE_Ano += eMes; totalS_Ano += sMes;
-            html += `<tr><td class="mes-nome">${m}</td><td>R$ ${format(eMes)}</td><td>R$ ${format(sMes)}</td><td class="${saldo >= 0 ? 'positivo' : 'negativo'}">R$ ${format(saldo)}</td></tr>`;
-        });
-
-        html += `
-                <tr class="total-final">
-                    <td style="text-align:left">TOTAL ACUMULADO</td>
-                    <td>R$ ${format(totalE_Ano)}</td>
-                    <td>R$ ${format(totalS_Ano)}</td>
-                    <td>R$ ${format(totalE_Ano - totalS_Ano)}</td>
-                </tr>
-            </tbody></table>
-            <p style="text-align:right; font-size:12px; color:gray; margin-top:20px;">Gerado em: ${new Date().toLocaleString()}</p>
-        </body></html>`;
-
-        win.document.write(html);
-        win.document.close();
     }
 
     function copyPreviousMonth() {

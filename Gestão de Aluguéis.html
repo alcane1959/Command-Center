@@ -19,8 +19,11 @@
         .locador-config input { width: 350px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
 
         .month-tabs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 25px; }
-        .month-btn { padding: 12px; border: none; background: #e0e6ed; cursor: pointer; border-radius: 6px; font-weight: bold; }
-        .month-btn.active { background: var(--accent); color: white; }
+        .month-btn { padding: 12px; border: 1px solid #ccc; background: transparent; cursor: pointer; border-radius: 6px; font-weight: bold; color: #666; }
+        .month-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(41, 128, 185, 0.05); }
+
+        .top-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .top-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
         th { background: var(--primary); color: white; padding: 12px; font-size: 0.8rem; text-align: left; }
@@ -29,48 +32,30 @@
         input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 0.85rem; background: #fff; }
         .in-name { font-weight: bold; color: #1a2a3a; }
 
-        .btn-demo-row { 
-            background: var(--accent); color: white; border: none; padding: 5px 0; border-radius: 4px; 
-            cursor: pointer; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; 
-            width: 100%; margin-bottom: 6px; transition: background 0.2s; letter-spacing: 0.5px;
-        }
-        .btn-demo-row:hover { background: #1c5982; }
+        .btn { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; color: #555; background: transparent; cursor: pointer; font-weight: bold; font-size: 0.7rem; transition: all 0.2s; text-transform: uppercase; }
+        .btn:hover { background: #f8f9fa; border-color: #999; }
+        
+        .btn-copy { color: var(--copy) !important; border-color: var(--copy) !important; }
+        .btn-save-all { color: var(--success) !important; border-color: var(--success) !important; }
+        .btn-clear { color: #e67e22 !important; border-color: #e67e22 !important; }
+        .btn-danger { color: var(--danger) !important; border-color: var(--danger) !important; }
+        .btn-anual { color: #8e44ad !important; border-color: #8e44ad !important; }
+
+        .btn-demo-row { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 5px 0; border-radius: 4px; cursor: pointer; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; width: 100%; margin-bottom: 6px; transition: all 0.2s; }
+        .btn-demo-row:hover { background: var(--accent); color: white; }
 
         .row-controls { display: flex; gap: 6px; justify-content: center; align-items: center; }
-        .btn-icon { 
-            background: none; border: none; cursor: pointer; font-size: 1.1rem; 
-            padding: 4px; border-radius: 4px; transition: transform 0.1s, background 0.2s;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn-icon:hover { background: rgba(0,0,0,0.05); transform: scale(1.2); }
+        .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
         .btn-icon.save { color: var(--success); }
         .btn-icon.add { color: var(--accent); }
         .btn-icon.del { color: var(--danger); }
 
-        .action-bar { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid #eee; }
-        .btn { padding: 10px 18px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; font-size: 0.75rem; }
-        
         #print-area { display: none; }
 
         @media print {
             .no-print { display: none !important; }
             #print-area { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            
-            .demo-wrapper { border: 1.5px solid #333; padding: 40px; width: 270mm; margin: 0 auto; background: #fff; box-sizing: border-box; }
-            .demo-header { display: flex; justify-content: space-between; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 25px; }
-            .demo-header h1 { margin: 0; font-size: 1.4rem; text-transform: uppercase; color: #000; letter-spacing: 1px; }
-            .demo-section { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-            .demo-section h4 { text-transform: uppercase; font-size: 0.7rem; color: #555; margin: 0 0 5px 0; border-bottom: 1px solid #ddd; }
-            .demo-section p { margin: 3px 0; font-size: 1rem; }
-            .prof-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            .prof-table th { background: #f2f2f2 !important; color: #000 !important; border: 1px solid #333; padding: 10px; text-transform: uppercase; font-size: 0.75rem; }
-            .prof-table td { padding: 12px 10px; border: 1px solid #ccc; font-size: 1rem; }
-            .signature-block { margin-top: 70px; text-align: center; }
-            .signature-name { font-family: 'Lucida Handwriting', 'Brush Script MT', cursive !important; font-size: 1.8rem; color: #000; margin-bottom: 0; }
-            .signature-line { border-top: 1px solid #000; width: 320px; margin: 0 auto; }
-            
-            @page { margin: 5mm; } 
-            .rep-container { box-shadow: none !important; border: none !important; width: 100% !important; padding: 0 !important; margin: 0 !important; background: white; }
+            .container { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
         }
     </style>
 </head>
@@ -96,38 +81,37 @@
 
         <div class="month-tabs" id="month-tabs"></div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="color: var(--accent); margin: 10px 0;">Referência: <span id="current-month-display">Janeiro</span></h2>
-            <button class="btn" style="background: var(--copy);" onclick="copyFromPreviousMonth()">📋 Copiar Anterior</button>
+        <div class="top-controls">
+            <h2 style="color: var(--accent); margin: 0;">Ref: <span id="current-month-display">Janeiro</span></h2>
+            <div class="top-actions">
+                <button class="btn btn-copy" onclick="copyFromPreviousMonth()">📋 Copiar Anterior</button>
+                <button class="btn btn-save-all" onclick="saveData(true)">💾 Salvar Tudo</button>
+                <button class="btn btn-clear" onclick="clearCurrentMonth()">🗑️ Limpar Mês</button>
+                <button class="btn" onclick="prepareAndPrint('mensal')">🖨️ Relat. Mês</button>
+                <button class="btn btn-anual" onclick="prepareAndPrint('anual')">📊 Relat. Anual</button>
+                <button class="btn" onclick="exportBackup()">📤 Exportar</button>
+                <button class="btn" onclick="document.getElementById('fileInput').click()">📥 Importar</button>
+                <button class="btn btn-danger" onclick="clearFullYear()">⚠️ Limpar Ano</button>
+                <input type="file" id="fileInput" style="display:none" accept=".json" onchange="importBackup(event)">
+            </div>
         </div>
 
         <table id="main-table">
             <thead>
                 <tr>
-                    <th style="width: 20.3%;">Inquilino</th>
-                    <th style="width: 11.7%;">Data Pagto</th>
-                    <th style="width: 8%;">Mês Reajuste</th>
+                    <th style="width: 20%;">Inquilino</th>
+                    <th style="width: 12%;">Data Pagto</th>
+                    <th style="width: 8%;">Reajuste</th>
                     <th style="width: 10%;">CDC IPTU</th>
-                    <th style="width: 13%;">Destino Depósito</th>
-                    <th style="width: 8.5%;">Aluguel</th>
-                    <th style="width: 8.5%;">Extras</th>
+                    <th style="width: 13%;">Destino</th>
+                    <th style="width: 9%;">Aluguel</th>
+                    <th style="width: 9%;">Extras</th>
                     <th style="width: 10%;">Subtotal</th>
                     <th style="width: 135px; text-align: center;">Ações</th>
                 </tr>
             </thead>
             <tbody id="rent-rows"></tbody>
         </table>
-
-        <div class="action-bar">
-            <button class="btn" style="background: var(--success);" onclick="saveData(true)">💾 Salvar Tudo</button>
-            <button class="btn" style="background: #e67e22;" onclick="clearCurrentMonth()">🗑️ Limpar Mês</button>
-            <button class="btn" style="background: #7f8c8d;" onclick="prepareAndPrint('mensal')">🖨️ Relatório Mês</button>
-            <button class="btn" style="background: #8e44ad;" onclick="prepareAndPrint('anual')">📊 Relatório Anual</button>
-            <button class="btn" style="background: var(--backup);" onclick="exportBackup()">📤 Exportar Backup</button>
-            <button class="btn" style="background: var(--backup);" onclick="document.getElementById('fileInput').click()">📥 Importar Backup</button>
-            <input type="file" id="fileInput" style="display:none" accept=".json" onchange="importBackup(event)">
-            <button class="btn" style="background: var(--danger);" onclick="clearFullYear()">⚠️ Limpar Ano</button>
-        </div>
     </div>
     <div id="print-area"></div>
 </div>
@@ -162,7 +146,7 @@
             <td class="row-total" style="font-weight:bold; font-size: 0.8rem;">R$ 0,00</td>
             <td>
                 <button class="btn-demo-row" onclick="gerarDemonstrativo(this.closest('tr').rowIndex - 1)">Demonstrativo</button>
-                <button class="btn-demo-row" style="background: #8e44ad;" onclick="gerarExtratoIndividual(this.closest('tr').rowIndex - 1)">Extrato Anual</button>
+                <button class="btn-demo-row" style="color: #8e44ad; border-color: #8e44ad;" onclick="gerarExtratoIndividual(this.closest('tr').rowIndex - 1)">Extrato Anual</button>
                 <div class="row-controls">
                     <button class="btn-icon add" title="Adicionar Linha" onclick="addRow(this)">➕</button>
                     <button class="btn-icon save" title="Salvar" onclick="saveData(true)">✅</button>
@@ -266,15 +250,15 @@
     
     function exportBackup() { 
         saveData(false); 
-        let b = {}; 
+        let backup = {}; 
         for (let i=0; i<localStorage.length; i++) { 
             let k = localStorage.key(i); 
-            if (k.startsWith('data_') || k === 'locador_nome' || k === 'selected_year') b[k] = localStorage.getItem(k); 
+            if (k.startsWith('data_') || k === 'locador_nome' || k === 'selected_year') backup[k] = localStorage.getItem(k); 
         } 
         const agora = new Date();
-        const dataStr = agora.getDate().toString().padStart(2, '0') + "-" + (agora.getMonth()+1).toString().padStart(2,'0');
-        const horaStr = agora.getHours().toString().padStart(2, '0') + "h" + agora.getMinutes().toString().padStart(2, '0');
-        const blob = new Blob([JSON.stringify(b, null, 2)], { type: 'application/json' }); 
+        const dataStr = agora.toLocaleDateString('pt-BR').replace(/\//g, '-');
+        const horaStr = agora.getHours().toString().padStart(2, '0') + 'h' + agora.getMinutes().toString().padStart(2, '0');
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }); 
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
         a.download = `backup_alugueis_${currentYear}_${dataStr}_${horaStr}.json`; 
         a.click(); 
@@ -307,27 +291,65 @@
         const total = val + extra;
         const dataF = row.querySelector('.in-date').value ? row.querySelector('.in-date').value.split('-').reverse().join('/') : 'A Combinar';
         const locador = document.getElementById('locador-nome').value || '(Locador)';
-        let mesRefIdx = currentMonthIdx - 1; let anoRef = currentYear; if(mesRefIdx < 0) { mesRefIdx = 11; anoRef = parseInt(currentYear) - 1; }
+        let mesRefIdx = currentMonthIdx - 1; let anoRef = currentYear; 
+        if(mesRefIdx < 0) { mesRefIdx = 11; anoRef = parseInt(currentYear) - 1; }
         const area = document.getElementById('print-area');
-        
-        area.innerHTML = `<div class="demo-wrapper">
-            <div class="demo-header"><h1>Demonstrativo de Pagamento</h1></div>
-            <div class="demo-section"><div><h4>Locador</h4><p><strong>${locador}</strong></p></div><div style="text-align: right;"><h4>Inquilino</h4><p><strong>${nome.toUpperCase()}</strong></p></div></div>
-            <div class="demo-section"><div><h4>Referência</h4><p>${meses[mesRefIdx]} / ${anoRef}</p></div><div style="text-align: right;"><h4>Data de Vencimento</h4><p><strong>${dataF}</strong></p></div></div>
-            <table class="prof-table"><thead><tr><th>Descrição</th><th style="text-align: right;">Valor</th></tr></thead><tbody>
-                <tr><td>Aluguel Mensal</td><td style="text-align: right;">${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>
-                <tr><td>Extras / Encargos / Descontos / Multas</td><td style="text-align: right;" class="${extra < 0 ? 'val-negativo' : ''}">${extra.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>
-                <tr style="font-weight: bold; background: #eee !important;"><td style="border: 1px solid #333;">TOTAL A RECEBER</td><td style="text-align: right; border: 1px solid #333;">${total.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td></tr>
-            </tbody></table>
-            <div style="margin-top: 15px; font-size: 0.85rem; display: flex; justify-content: space-between;">
-    <span><strong>FORMA DE PAGAMENTO:</strong> ${destino}</span>
-    <span><strong>IPTU:</strong> ${cdc}</span>
-</div>
-	    <div style="padding: 5px 10px; border-left: 4px solid #333; margin: 15px 0; font-size: 0.85rem;">
-  <strong>NOTA:</strong> Este documento é para conferência dos valores a serem pagos até a data de vencimento. Em caso de atraso, incidirá multa conforme o contrato, a ser cobrada no próximo aluguel.
-</div>
-            ${reajuste ? `<p style="color: #d35400; font-weight: bold; margin-top: 10px;">⚠️ MÊS DE REAJUSTE: ${reajuste.toUpperCase()}</p>` : ''}
-            <div class="signature-block"><p class="signature-name">${locador}</p><div class="signature-line"></div></div>
+        area.innerHTML = `
+        <style>
+            .demo-wrapper { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #000; background: #fff; border: none !important; box-shadow: none !important; }
+            .demo-header { border-bottom: 2px solid #333; margin-bottom: 20px; text-align: center; }
+            .demo-header h1 { margin: 10px 0; text-transform: uppercase; font-size: 1.5rem; }
+            .demo-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
+            .demo-section h4 { margin: 0 0 5px 0; color: #666; text-transform: uppercase; font-size: 0.75rem; }
+            .demo-section p { margin: 0; font-size: 1.1rem; }
+            .prof-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            .prof-table th { background: #f2f2f2; border: 1px solid #333; padding: 12px; text-align: left; font-size: 0.9rem; }
+            .prof-table td { border: 1px solid #333; padding: 12px; font-size: 1rem; }
+            .val-negativo { color: #e74c3c; font-weight: bold; }
+            .signature-block { margin-top: 50px; text-align: center; width: 280px; margin-left: auto; }
+            .signature-line { border-top: 1.5px solid #333; margin-top: 8px; }
+            .signature-name { font-weight: bold; text-transform: uppercase; margin: 0; font-size: 0.9rem; }
+            @media print {
+                body * { visibility: hidden; }
+                #print-area, #print-area * { visibility: visible; }
+                #print-area { position: absolute; left: 0; top: 0; width: 100%; zoom: 70%; }
+                .demo-wrapper { border: none !important; box-shadow: none !important; margin: 0 auto; outline: none !important; }
+            }
+        </style>
+        <div class="demo-wrapper">
+            <div class="demo-header"><h1>Demonstrativo de Aluguel</h1></div>
+            <div class="demo-section">
+                <div><h4>Locador</h4><p><strong>${locador}</strong></p></div>
+                <div style="text-align: right;"><h4>Inquilino</h4><p><strong>${nome.toUpperCase()}</strong></p></div>
+            </div>
+            <div class="demo-section">
+                <div><h4>Mês de Referência</h4><p>${meses[mesRefIdx]} / ${anoRef}</p></div>
+                <div style="text-align: right;"><h4>Data Limite para Pgto</h4><p><strong>${dataF}</strong></p></div>
+            </div>
+            <table class="prof-table">
+                <thead><tr><th>Item / Descrição</th><th style="text-align: right;">Valor (R$)</th></tr></thead>
+                <tbody>
+                    <tr><td>Aluguel Mensal de Imóvel</td><td style="text-align: right;">${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>
+                    <tr><td>Encargos / Extras / Descontos</td><td style="text-align: right;" class="${extra < 0 ? 'val-negativo' : ''}">${extra.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>
+                    <tr style="font-weight: bold; background: #eee !important;">
+                        <td>TOTAL GERAL A RECEBER</td>
+                        <td style="text-align: right;">${total.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="margin-top: 25px; font-size: 0.85rem; display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; padding-bottom: 15px;">
+                <span><strong>FORMA DE PGTO:</strong> ${destino}</span>
+                <span><strong>IPTU (INSCRIÇÃO):</strong> ${cdc}</span>
+            </div>
+            <div style="padding: 12px; border-left: 5px solid #333; margin: 25px 0; font-size: 0.85rem; background: #f9f9f9; line-height: 1.4;">
+                <strong>INFORMAÇÃO IMPORTANTE:</strong> Este documento serve para conferência de valores. O pagamento após o vencimento implicará em encargos previstos em contrato.
+            </div>
+            ${reajuste ? `<div style="color: #d35400; font-weight: bold; margin-top: 10px; text-align: center; border: 1px dashed #d35400; padding: 10px; font-size: 0.9rem;">⚠️ ATENÇÃO: MÊS DE REAJUSTE CONTRATUAL EM ${reajuste.toUpperCase()}</div>` : ''}
+            <div class="signature-block">
+                <p class="signature-name">${locador}</p>
+                <div class="signature-line"></div>
+                <p style="font-size: 0.7rem; margin-top: 5px; color: #666;">Assinatura do Locador</p>
+            </div>
         </div>`;
         window.print();
     }
@@ -336,137 +358,105 @@
         saveData(false);
         const rows = document.querySelectorAll('#rent-rows tr');
         const nomeInquilino = rows[rowIdx].querySelector('.in-name').value;
-        if(!nomeInquilino) return alert("Por favor, preencha o nome do inquilino primeiro.");
-
+        const locador = document.getElementById('locador-nome').value || '(Locador)';
+        if(!nomeInquilino) return alert("Por favor, preencha o nome do inquilino.");
         let htmlExtrato = `
-            <div style="font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; max-width: 800px; margin: auto; color: #333;">
-                <div style="border-bottom: 2px solid #1a2a3a; padding-bottom: 10px; margin-bottom: 20px; text-align: center;">
-                    <h2 style="margin: 0; text-transform: uppercase; color: #1a2a3a;">Extrato Anual de Recebimentos</h2>
+            <style>
+                .extrato-wrapper { font-family: Arial, sans-serif; padding: 40px; color: #333; background: white; border: none !important; box-shadow: none !important; max-width: 900px; margin: 0 auto; }
+                .signature-block { margin-top: 50px; text-align: center; width: 280px; margin-left: auto; }
+                .signature-line { border-top: 1.5px solid #333; margin-top: 8px; }
+                .signature-name { font-weight: bold; text-transform: uppercase; margin: 0; font-size: 0.9rem; }
+                @media print {
+                    body * { visibility: hidden; }
+                    #print-area, #print-area * { visibility: visible; }
+                    #print-area { position: absolute; left: 0; top: 0; width: 100%; zoom: 70%; }
+                    .extrato-wrapper { border: none !important; box-shadow: none !important; outline: none !important; }
+                }
+            </style>
+            <div class="extrato-wrapper">
+                <h2 style="text-align: center; border-bottom: 2px solid #1a2a3a; padding-bottom: 10px;">Extrato Anual de Recebimentos</h2>
+                <div style="margin: 20px 0; line-height: 1.6;">
+                    <p><strong>LOCADOR:</strong> ${locador.toUpperCase()}</p>
+                    <p><strong>INQUILINO:</strong> ${nomeInquilino.toUpperCase()}</p>
+                    <p><strong>ANO DE REFERÊNCIA:</strong> ${currentYear}</p>
                 </div>
-                <p style="margin: 5px 0;"><strong>LOCADOR:</strong> ${(document.getElementById('locador-nome').value || 'Não informado').toUpperCase()}</p>
-                <p style="margin: 5px 0;"><strong>INQUILINO:</strong> ${nomeInquilino.toUpperCase()}</p>
-                <p style="margin: 5px 0;"><strong>ANO DE REFERÊNCIA:</strong> ${currentYear}</p>
-                <br>
-                <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
-                    <thead>
-                        <tr style="background: #1a2a3a; color: white;">
-                            <th style="padding:12px; text-align:left; font-size: 0.8rem; border: 1px solid #1a2a3a;">MÊS</th>
-                            <th style="padding:12px; text-align:center; font-size: 0.8rem; border: 1px solid #1a2a3a;">DATA PGTO</th>
-                            <th style="padding:12px; text-align:right; font-size: 0.8rem; border: 1px solid #1a2a3a;">TOTAL PAGO</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-
+                <table style="width:100%; border-collapse: collapse; margin-top: 20px; border: 1.5px solid #000;">
+                    <thead><tr style="background: #f2f2f2; color: #000;">
+                        <th style="padding:12px; text-align:left; border:1px solid #000; font-size: 0.9rem;">MÊS</th>
+                        <th style="padding:12px; text-align:center; border:1px solid #000; font-size: 0.9rem;">DATA PAGTO</th>
+                        <th style="padding:12px; text-align:right; border:1px solid #000; font-size: 0.9rem;">VALOR TOTAL</th>
+                    </tr></thead><tbody>`;
         let totalAnual = 0;
-        let encontrouDados = false;
-
+        let encontrou = false;
         for(let i=0; i<12; i++) {
-            const dadosMes = JSON.parse(localStorage.getItem(`data_${currentYear}_mes_${i}`) || '[]');
-            const registro = dadosMes.find(r => r.n && r.n.trim().toUpperCase() === nomeInquilino.trim().toUpperCase());
-            if(registro) {
-                encontrouDados = true;
-                const v = (parseFloat(registro.v)||0) + (parseFloat(registro.e)||0);
+            const dados = JSON.parse(localStorage.getItem(`data_${currentYear}_mes_${i}`) || '[]');
+            const reg = dados.find(r => r.n && r.n.trim().toUpperCase() === nomeInquilino.trim().toUpperCase());
+            if(reg) {
+                encontrou = true;
+                const v = (parseFloat(reg.v)||0) + (parseFloat(reg.e)||0);
                 totalAnual += v;
-                htmlExtrato += `
-                    <tr>
-                        <td style="padding:10px; border: 1px solid #ccc; font-weight: bold;">${meses[i].toUpperCase()}</td>
-                        <td style="padding:10px; border: 1px solid #ccc; text-align:center;">${registro.d ? registro.d.split('-').reverse().join('/') : '--'}</td>
-                        <td style="padding:10px; border: 1px solid #ccc; text-align:right; font-weight: bold;">
-                            ${v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}
-                        </td>
-                    </tr>`;
+                htmlExtrato += `<tr>
+                    <td style="padding:10px; border:1px solid #000;">${meses[i].toUpperCase()}</td>
+                    <td style="padding:10px; border:1px solid #000; text-align:center;">${reg.d ? reg.d.split('-').reverse().join('/') : '--'}</td>
+                    <td style="padding:10px; border:1px solid #000; text-align:right;">${v.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                </tr>`;
             }
         }
-
-        if(!encontrouDados) return alert("Nenhum dado encontrado para este inquilino neste ano.");
-
+        if(!encontrou) return alert("Sem dados para este inquilino.");
         htmlExtrato += `
-                    <tr style="background:#f2f2f2;">
-                        <td colspan="2" style="padding:15px; text-align:right; font-weight:bold; border: 1px solid #ccc;">TOTAL ACUMULADO NO ANO:</td>
-                        <td style="padding:15px; text-align:right; font-weight:bold; font-size: 1.1rem; color: #1a2a3a; border: 1px solid #ccc;">${totalAnual.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 0.75rem; color: #666; text-align: center;">
-                <p>Este documento serve como extrato de conferência para o ano de ${currentYear}.</p>
-                <p>Gerado em: ${new Date().toLocaleDateString()} às ${new Date().toLocaleTimeString()}</p>
-            </div>
-        </div>`;
-
-        // CIRURGIA: Em vez de window.open, usa a área de impressão da página
+                <tr style="font-weight:bold; background:#eee;">
+                    <td colspan="2" style="padding:12px; text-align:right; border:1.5px solid #000;">TOTAL ACUMULADO NO ANO:</td>
+                    <td style="padding:12px; text-align:right; border:1.5px solid #000;">${totalAnual.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
+                </tr></tbody></table>
+                <div class="signature-block">
+                    <p class="signature-name">${locador}</p>
+                    <div class="signature-line"></div>
+                    <p style="font-size: 0.7rem; margin-top: 5px; color: #666;">Assinatura do Locador</p>
+                </div>
+            </div>`;
         const area = document.getElementById('print-area');
         area.innerHTML = htmlExtrato;
         window.print();
     }
 
+    /* ALTERAÇÃO: ADICIONADO <strong> NO NOME DO INQUILINO */
     function prepareAndPrint(type) {
         saveData(false);
         const area = document.getElementById('print-area');
         const locador = (document.getElementById('locador-nome').value || 'Não informado').toUpperCase();
         let totalGeral = 0;
-        let resumoInquilinos = {}; 
-        
         let html = `
         <style>
-            .rep-container { font-family: 'Segoe UI', Arial, sans-serif; color: #000; width: 100%; box-shadow: none !important; border: none !important; background: white; padding: 0; margin: 0; }
-            .rep-header { border-bottom: 2px solid #000; margin-bottom: 20px; text-align: center; padding-bottom: 10px; }
-            .rep-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 25px; border: none !important; }
-            .col-nome { width: 48%; text-align: left; } .col-data { width: 13%; text-align: center; }
-            .col-val { width: 13%; text-align: right; } .col-ext { width: 13%; text-align: right; } .col-tot { width: 13%; text-align: right; font-weight: bold; }
-            .rep-table th, .rep-table td { padding: 6px 2px; font-size: 8.5pt; border: none !important; vertical-align: top; }
-            .rep-table td { border-bottom: 0.5px solid #eee !important; }
-            .rep-table th { border-bottom: 1.5px solid #000 !important; text-transform: uppercase; font-weight: bold; }
-            .rep-month-title { font-weight: bold; text-align: left; background: #f9f9f9 !important; border-bottom: 1px solid #ccc !important; }
-            .sub-total-row td { border-top: 1px solid #000 !important; font-weight: bold; padding-top: 10px; }
+            .rep-container { font-family: Arial, sans-serif; background: white; padding: 20px; }
+            .rep-header { border-bottom: 2px solid #000; text-align: center; margin-bottom: 20px; }
+            .rep-table { width: 100%; border-collapse: collapse; }
+            .rep-table th, .rep-table td { border-bottom: 1px solid #eee; padding: 8px; font-size: 9pt; }
+            .rep-table th { border-bottom: 2px solid #000; background: #f9f9f9; }
+            .rep-month-title { font-weight: bold; background: #f0f0f0 !important; }
+            @media print { #print-area { zoom: 85%; } }
         </style>
         <div class="rep-container">
-            <div class="rep-header">
-                <h3 style="margin:0;">RELATÓRIO DE RECEBIMENTOS - ${type==='mensal'?'MENSAL':'ANUAL'}</h3>
-                <p style="margin:5px 0; font-size: 10pt;">LOCADOR: ${locador} | ANO: ${currentYear}</p>
-            </div>
+            <div class="rep-header"><h3>RELATÓRIO DE RECEBIMENTOS - ${type.toUpperCase()}</h3><p>LOCADOR: ${locador} | ANO: ${currentYear}</p></div>
             <table class="rep-table">
-                <thead><tr><th class="col-nome">Inquilino</th><th class="col-data">Data</th><th class="col-val">Aluguel</th><th class="col-ext">Extras</th><th class="col-tot">Total</th></tr></thead>
+                <thead><tr><th style="text-align:left">Inquilino</th><th>Data</th><th style="text-align:right">Aluguel</th><th style="text-align:right">Extras</th><th style="text-align:right">Total</th></tr></thead>
                 <tbody>`;
-
         const getMonthDataForPrint = (idx) => {
             const data = JSON.parse(localStorage.getItem(`data_${currentYear}_mes_${idx}`) || '[]');
-            let rHtml = ''; let has = false; let sub = 0;
+            let rHtml = ''; let sub = 0; let has = false;
             data.forEach(r => {
-                const v = parseFloat(r.v)||0; const e = parseFloat(r.e)||0;
-                const totalLinha = v + e;
-                if(r.n || v > 0) {
-                    has = true; sub += totalLinha; totalGeral += totalLinha;
-                    let nomeKey = (r.n || "SEM NOME").toUpperCase().trim();
-                    resumoInquilinos[nomeKey] = (resumoInquilinos[nomeKey] || 0) + totalLinha;
-                    rHtml += `<tr>
-                        <td class="col-nome"><b>${r.n.toUpperCase()}</b></td>
-                        <td class="col-data">${r.d?r.d.split('-').reverse().join('/'):'--'}</td>
-                        <td class="col-val">${v.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                        <td class="col-ext">${e.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                        <td class="col-tot">${totalLinha.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td>
-                    </tr>`;
+                const total = (parseFloat(r.v)||0) + (parseFloat(r.e)||0);
+                if(r.n || total > 0) {
+                    has = true; sub += total; totalGeral += total;
+                    rHtml += `<tr><td><strong>${r.n.toUpperCase()}</strong></td><td style="text-align:center">${r.d?r.d.split('-').reverse().join('/'):'--'}</td><td style="text-align:right">${(parseFloat(r.v)||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td><td style="text-align:right">${(parseFloat(r.e)||0).toLocaleString('pt-BR', {minimumFractionDigits:2})}</td><td style="text-align:right; font-weight:bold">${total.toLocaleString('pt-BR', {minimumFractionDigits:2})}</td></tr>`;
                 }
             });
-            return has ? `<tr class="rep-month-title"><td colspan="5" style="padding: 10px 4px;">${meses[idx].toUpperCase()}</td></tr>` + rHtml + `<tr class="sub-total-row"><td colspan="4" style="text-align:right;">SUBTOTAL ${meses[idx]}:</td><td style="text-align:right;">${sub.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td></tr>` : '';
+            return has ? `<tr class="rep-month-title"><td colspan="5">${meses[idx].toUpperCase()}</td></tr>` + rHtml + `<tr><td colspan="4" style="text-align:right; font-weight:bold">Subtotal:</td><td style="text-align:right; font-weight:bold">${sub.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td></tr>` : '';
         };
-
         if(type === 'mensal') html += getMonthDataForPrint(currentMonthIdx);
         else for(let i=0; i<12; i++) html += getMonthDataForPrint(i);
-
-        html += `</tbody></table>`;
-
-        if(type === 'anual') {
-            html += `<div style="margin-top: 40px;"><h4 style="text-align:center; border-bottom: 1px solid #000;">Resumo por Inquilino</h4><table class="rep-table" style="width: 70%; margin: 0 auto;"><tbody>`;
-            Object.keys(resumoInquilinos).sort().forEach(nome => {
-                html += `<tr><td class="col-nome">${nome}</td><td class="col-tot">${resumoInquilinos[nome].toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td></tr>`;
-            });
-            html += `</tbody></table></div>`;
-        }
-
-        html += `<p style="text-align:right; font-weight:bold; font-size: 11pt; border-top: 2px solid #000; padding-top:10px;">TOTAL GERAL: ${totalGeral.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</p></div>`;
+        html += `</tbody></table><p style="text-align:right; font-weight:bold; font-size: 12pt; border-top: 2px solid #000; padding-top:10px;">TOTAL GERAL: ${totalGeral.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</p></div>`;
         area.innerHTML = html; window.print();
     }
-
     window.onload = init;
 </script>
 </body>
