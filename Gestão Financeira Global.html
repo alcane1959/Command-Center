@@ -250,19 +250,26 @@
     }
 
     function exportBackup() {
-        const agora = new Date();
-        const dataFormatada = agora.getFullYear() + "-" + 
-                              String(agora.getMonth() + 1).padStart(2, '0') + "-" + 
-                              String(agora.getDate()).padStart(2, '0') + "_" + 
-                              String(agora.getHours()).padStart(2, '0') + "-" + 
-                              String(agora.getMinutes()).padStart(2, '0');
+    const agora = new Date();
+    
+    // Criamos as partes individualmente para facilitar a montagem
+    const ano = agora.getFullYear();
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const hora = String(agora.getHours()).padStart(2, '0');
+    const min = String(agora.getMinutes()).padStart(2, '0');
 
-        const blob = new Blob([JSON.stringify(fullDB)], {type: 'text/plain'});
-        const a = document.createElement('a'); 
-        a.href = URL.createObjectURL(blob);
-        a.download = `backup_financeiro_global_${dataFormatada}.txt`; 
-        a.click();
-    }
+    // Montagem conforme seu exemplo: backup_financeiro_2026_26-02-2026_01h34
+    const dataFormatada = `${ano}_${dia}-${mes}-${ano}_${hora}h${min}`;
+
+    const blob = new Blob([JSON.stringify(fullDB)], {type: 'text/plain'});
+    const a = document.createElement('a'); 
+    a.href = URL.createObjectURL(blob);
+    
+    // Note que removi o "global" do nome para bater exatamente com seu exemplo
+    a.download = `backup_financeiro_${dataFormatada}.txt`; 
+    a.click();
+}
 
     function importBackup(event) {
         const reader = new FileReader();

@@ -272,17 +272,30 @@
         }
 
         function exportarDados() {
-            const agora = new Date();
-            const timestamp = agora.toISOString().replace(/[:.]/g, '-');
-            const nomeArquivo = `backup_patrimonio_${timestamp}.json`;
-            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = nomeArquivo;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
+    const agora = new Date();
+    
+    // Preparando os componentes da data e hora
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const ano = agora.getFullYear();
+    const hora = String(agora.getHours()).padStart(2, '0');
+    const min = String(agora.getMinutes()).padStart(2, '0');
+
+    // Montando o nome do arquivo conforme seu padrão: 2026_26-02-2026_10h03
+    const nomeArquivo = `backup_patrimonio_${ano}_${dia}-${mes}-${ano}_${hora}h${min}.json`;
+
+    // Criando o arquivo para download
+    const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    
+    a.href = url;
+    a.download = nomeArquivo;
+    a.click();
+    
+    // Limpeza da URL para liberar memória
+    URL.revokeObjectURL(url);
+}
 
         function importarDados(e) {
             const reader = new FileReader();

@@ -331,10 +331,28 @@
         }
 
         function exportarCarteira() {
-            const agora = new Date(); const dataFmt = agora.toISOString().split('T')[0]; const horaFmt = agora.getHours().toString().padStart(2, '0') + 'h' + agora.getMinutes().toString().padStart(2, '0');
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(carteira));
-            const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `Quantum_Portfolio_${dataFmt}_${horaFmt}.json`); dl.click();
-        }
+    const agora = new Date();
+    
+    // Extraindo as partes individualmente
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const ano = agora.getFullYear();
+    const hora = String(agora.getHours()).padStart(2, '0');
+    const min = String(agora.getMinutes()).padStart(2, '0');
+
+    // Montando a string no formato: 2026_26-02-2026_01h34
+    const dataHoraFmt = `${ano}_${dia}-${mes}-${ano}_${hora}h${min}`;
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(carteira));
+    const dl = document.createElement('a'); 
+    
+    dl.setAttribute("href", dataStr);
+    
+    // Nome final do arquivo
+    dl.setAttribute("download", `backup_portifolio_${dataHoraFmt}.json`); 
+    
+    dl.click();
+}
 
         function importarCarteira(input) {
             const reader = new FileReader();
