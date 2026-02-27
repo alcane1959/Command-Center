@@ -4,99 +4,81 @@
     <meta charset="UTF-8">
     <title>Gestão Financeira Global - Master</title>
     <style>
-        /* Estilos Gerais */
         body { font-family: 'Segoe UI', sans-serif; background: #eceff1; margin: 20px; color: #333; }
         .container { max-width: 1150px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* Seletor de Ano */
         .year-selector { background: #f8f9fa; color: #2c3e50; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 15px; border: 1px solid #ddd; }
         .year-selector select { padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 16px; font-weight: bold; cursor: pointer; }
 
-        /* Barra de Ferramentas */
-        .toolbar { margin-bottom: 20px; display: flex; gap: 8px; flex-wrap: wrap; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
-        button.tool { 
-            padding: 8px 15px; 
-            cursor: pointer; 
-            border: 1px solid #ccc; 
-            border-radius: 5px; 
-            color: #444; 
-            background: #fff; 
-            font-weight: 500; 
-            font-size: 13px; 
-            transition: all 0.2s; 
-        }
+        .import-panel { background: #e8f5e9; border: 1px solid #81c784; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .btn-import { background: #2e7d32; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        .btn-import:hover { background: #1b5e20; }
+
+        .toolbar { margin-bottom: 10px; display: flex; gap: 8px; flex-wrap: wrap; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
+        button.tool { padding: 8px 15px; cursor: pointer; border: 1px solid #ccc; border-radius: 5px; color: #444; background: #fff; font-weight: 500; font-size: 13px; transition: all 0.2s; }
         button.tool:hover { background: #f1f2f6; border-color: #999; }
         
-        .btn-save:hover { border-color: #3498db; color: #3498db; }
-        .btn-clear-month:hover { border-color: #e67e22; color: #e67e22; }
-
-        /* Abas Mensais */
         .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 15px; }
         .tab-btn { padding: 8px 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; border-radius: 4px; flex: 1; transition: 0.2s; }
-        .tab-btn:hover { background: #f8f9fa; }
         .tab-btn.active { background: #2c3e50; color: white; font-weight: bold; border: none; }
         
-        /* Tabela */
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background: #f1f2f6; padding: 10px; font-size: 13px; text-align: left; color: #666; }
         td { border-bottom: 1px solid #eee; padding: 0; }
-        input { width: 100%; border: none; outline: none; padding: 10px; box-sizing: border-box; background: transparent; }
+        input { width: 100%; border: none; outline: none; padding: 10px; box-sizing: border-box; background: transparent; font-size: 14px; }
+        input:focus { background: #f0f7ff; border: 1px solid #3498db; }
         
         .desc-input { text-transform: uppercase; }
         .input-val { text-align: right; }
-        .status-cell { text-align: right; font-weight: bold; padding-right: 10px; background: #fafafa; width: 140px; }
+        .status-cell { text-align: right; font-weight: bold; padding-right: 10px; background: #fafafa; width: 140px; font-size: 14px; }
         
         .action-cell { text-align: center; display: flex; justify-content: center; gap: 5px; padding: 5px 0; }
-        .btn-row-add { color: #3498db; cursor: pointer; font-weight: bold; border: none; background: none; font-size: 18px; }
-        .btn-row-del { color: #e74c3c; cursor: pointer; font-weight: bold; border: none; background: none; font-size: 18px; }
+        .btn-row-add, .btn-row-del { border: none; background: none; font-size: 18px; cursor: pointer; font-weight: bold; }
+        .btn-row-add { color: #3498db; }
+        .btn-row-del { color: #e74c3c; }
 
-        .footer-totals { background: #f8f9fa; padding: 12px; border-radius: 0 0 12px 12px; border: 1px solid #ddd; border-top: none; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
+        .footer-totals { background: #f8f9fa; padding: 15px; border-radius: 0 0 12px 12px; border: 1px solid #ddd; border-top: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+        .row-info { display: flex; justify-content: space-between; align-items: center; }
+        .total-final { border-top: 2px solid #2c3e50; margin-top: 5px; padding-top: 8px; font-size: 16px; font-weight: 900; }
         
         #fileInput { display: none; }
 
-        /* REGRAS DE IMPRESSÃO COM ESCALA DE 90% */
         @media print {
-            body { background: white; margin: 0; padding: 0; }
-            .container { 
-                box-shadow: none; 
-                border: none; 
-                width: 100%; 
-                max-width: 100%; 
-                margin: 0; 
-                padding: 0;
-                /* Aplica a escala de 90% */
-                transform: scale(0.9);
-                transform-origin: top left;
-                width: 111.11%; /* Compensa o encolhimento para ocupar a largura da página */
-            }
-            .year-selector, .toolbar, .tabs, .action-cell, th:last-child, td:last-child { display: none !important; }
-            h2::after { content: " - Relatório Mensal"; }
-            table { border: 1px solid #000; width: 100%; }
-            th { border-bottom: 2px solid #000; color: black; }
-            td { border-bottom: 1px solid #ccc; }
-            input { color: black !important; }
-            .status-cell { background: none !important; border-left: 1px solid #eee; }
+            body { background: white; margin: 0; padding: 0; zoom: 80%; }
+            .container { box-shadow: none; width: 100%; max-width: 100%; padding: 0; }
+            .year-selector, .import-panel, .toolbar, .tabs, .action-cell, #fileInput { display: none !important; }
+            table { border: 1px solid #ccc; width: 100%; }
+            th { border: 1px solid #ccc; background: #eee !important; color: black; -webkit-print-color-adjust: exact; }
+            td { border: 1px solid #eee; }
         }
     </style>
 </head>
-<body onbeforeunload="saveDataSilent()" onunload="saveDataSilent()">
+<body>
 
 <div class="container">
-    <h2 id="tituloPrincipal">💰 Gestão Financeira Global</h2>
+    <h2 id="tituloPagina">💰 Gestão Financeira Global</h2>
 
     <div class="year-selector">
-        <label>Selecione o Ano:</label>
+        <label>Ano:</label>
         <select id="selectAno" onchange="changeYear()"></select>
     </div>
 
+    <div class="import-panel">
+        <strong>📂 Importação por Mês (Banco)</strong><br>
+        <small>Extraindo dados para: <b id="mesAlvoTxt">...</b></small><br>
+        <input type="file" id="fileExtrato" accept=".txt,.csv" style="margin-top: 10px;">
+        <button class="btn-import" onclick="importarArquivoBanco()">🚀 Importar este Mês</button>
+    </div>
+
     <div class="toolbar">
-        <button class="tool btn-save" onclick="saveData()">💾 Salvar</button>
-        <button class="tool btn-copy" id="btnCopy" onclick="copyPreviousMonth()">📋 Copiar Mês Anterior</button>
-        <button class="tool btn-clear-month" onclick="limparMesInteiro()">🧹 Limpar Mês Atual</button>
-        <button class="tool btn-util" onclick="exportBackup()">📥 Backup</button>
-        <button class="tool btn-util" onclick="document.getElementById('fileInput').click()">📤 Restaurar</button>
-        <button class="tool btn-print-tool" onclick="window.print()">📄 Imprimir Mês Atual</button>
+        <button class="tool" onclick="saveData()">💾 Salvar</button>
+        <button class="tool" onclick="copyPreviousMonth()">📋 Copiar Anterior (Projeção)</button>
+        <button class="tool" onclick="ordenarPorDia()">📅 Ordenar por Dia</button>
+        <button class="tool" onclick="limparMesInteiro()">🧹 Limpar Mês</button>
+        <button class="tool" onclick="exportBackup()">📥 Backup</button>
+        <button class="tool" onclick="document.getElementById('fileInput').click()">📤 Restaurar</button>
+        <button class="tool" onclick="window.print()">📄 Imprimir</button>
         <input type="file" id="fileInput" onchange="importBackup(event)" accept=".txt">
     </div>
 
@@ -106,26 +88,43 @@
         <table>
             <thead>
                 <tr>
-                    <th width="45">Dia</th>
+                    <th width="50">Dia</th>
                     <th>Descrição</th>
-                    <th width="140" style="text-align:right">Entrada (R$)</th>
-                    <th width="140" style="text-align:right">Saída (R$)</th>
+                    <th width="130" style="text-align:right">Entrada</th>
+                    <th width="130" style="text-align:right">Saída</th>
                     <th width="140" style="text-align:right">Saldo Acum.</th>
-                    <th width="70">Ações</th>
+                    <th width="70" class="action-cell">Ações</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
+        
         <div class="footer-totals">
-            <span id="labelMensal">Resumo do Mês: R$ 0,00</span>
+            <div class="row-info" style="color: #555;">
+                <span>Saldo Anterior (Mêses passados):</span>
+                <span id="valorMesAnterior">R$ 0,00</span>
+            </div>
+            <div class="row-info" style="color: #27ae60;">
+                <span>(+) Entradas deste Mês:</span>
+                <span id="totalEntradasMes">R$ 0,00</span>
+            </div>
+            <div class="row-info" style="color: #c0392b;">
+                <span>(-) Saídas deste Mês:</span>
+                <span id="totalSaidasMes">R$ 0,00</span>
+            </div>
+            <div class="row-info total-final">
+                <span>Saldo Final em Conta:</span>
+                <span id="saldoFinalReal">R$ 0,00</span>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    let lastMonth = localStorage.getItem('lastActiveMonth');
     let currentYear = new Date().getFullYear();
-    let currentMonth = months[new Date().getMonth()];
+    let currentMonth = lastMonth || months[new Date().getMonth()];
     let fullDB = JSON.parse(localStorage.getItem('financeDB_v2')) || {};
 
     function format(v) { return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
@@ -143,81 +142,33 @@
         checkAndCreateYear(currentYear);
         renderTabs();
         renderTable();
+        atualizarTextoFiltro();
     }
 
     function checkAndCreateYear(year) {
         if(!fullDB[year]) fullDB[year] = {};
         months.forEach(m => {
-            if(!fullDB[year][m]) fullDB[year][m] = [];
-            while(fullDB[year][m].length < 10) fullDB[year][m].push({d:'', desc:'', e:'', s:''});
+            if(!fullDB[year][m]) fullDB[year][m] = Array(15).fill().map(() => ({d:'', desc:'', e:'', s:''}));
         });
     }
 
-    function inserirLinhaNoMeio(index) {
-        fullDB[currentYear][currentMonth].splice(index + 1, 0, {d:'', desc:'', e:'', s:''});
-        renderTable();
-        saveDataSilent();
+    function atualizarTextoFiltro() {
+        const txt = document.getElementById('mesAlvoTxt');
+        if(txt) txt.innerText = currentMonth + "/" + currentYear;
+        document.getElementById('tituloPagina').innerText = `💰 Gestão Financeira - ${currentMonth}/${currentYear}`;
     }
 
-    function changeYear() {
-        currentYear = document.getElementById('selectAno').value;
-        checkAndCreateYear(currentYear);
-        renderTable();
-    }
-
-    function renderTabs() {
-        const tabCont = document.getElementById('tabContainer');
-        tabCont.innerHTML = '';
-        months.forEach(m => {
-            const btn = document.createElement('button');
-            btn.className = `tab-btn ${m === currentMonth ? 'active' : ''}`;
-            btn.innerText = m;
-            btn.onclick = (e) => {
-                currentMonth = m;
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                renderTable();
-            };
-            tabCont.appendChild(btn);
-        });
-    }
-
-    function update(i, field, val) {
-        if (field === 'desc') val = val.toUpperCase();
-        fullDB[currentYear][currentMonth][i][field] = val;
-        recalculate();
-        saveDataSilent();
-    }
-
-    function clearRow(i) {
-        fullDB[currentYear][currentMonth].splice(i, 1);
-        if(fullDB[currentYear][currentMonth].length < 10) fullDB[currentYear][currentMonth].push({d:'', desc:'', e:'', s:''});
-        renderTable();
-        saveDataSilent();
-    }
-
-    function limparMesInteiro() {
-        if(confirm(`⚠️ ATENÇÃO: Deseja apagar TUDO em ${currentMonth}/${currentYear}?`)) {
-            fullDB[currentYear][currentMonth] = Array(10).fill().map(() => ({d:'', desc:'', e:'', s:''}));
-            renderTable();
-            saveDataSilent();
+    function getSaldoAnterior(ano, mesNome) {
+        const mesIdx = months.indexOf(mesNome);
+        let saldo = 0;
+        for (let i = 0; i < mesIdx; i++) {
+            const m = months[i];
+            (fullDB[ano][m] || []).forEach(l => {
+                saldo += parseFloat(l.e || 0);
+                saldo -= parseFloat(l.s || 0);
+            });
         }
-    }
-
-    function recalculate() {
-        let tEnt = 0, tSai = 0, acumulado = 0;
-        const rows = document.querySelectorAll('#tableBody tr');
-        fullDB[currentYear][currentMonth].forEach((data, i) => {
-            const e = parseFloat(data.e || 0); const s = parseFloat(data.s || 0);
-            tEnt += e; tSai += s; acumulado += (e - s);
-            const cell = rows[i]?.querySelector('.status-cell');
-            if(cell) {
-                const temDado = data.d || data.desc || data.e || data.s;
-                cell.innerText = temDado ? format(acumulado) : '';
-                cell.style.color = acumulado >= 0 ? "#27ae60" : "#c0392b";
-            }
-        });
-        document.getElementById('labelMensal').innerText = `${currentMonth}/${currentYear} -> Entradas: R$ ${format(tEnt)} | Saídas: R$ ${format(tSai)} | Saldo: R$ ${format(tEnt-tSai)}`;
+        return saldo;
     }
 
     function renderTable() {
@@ -232,8 +183,8 @@
                 <td><input type="number" step="0.01" class="input-val" value="${row.s || ''}" oninput="update(${i}, 's', this.value)"></td>
                 <td class="status-cell"></td>
                 <td class="action-cell">
-                    <button class="btn-row-add" onclick="inserirLinhaNoMeio(${i})" title="Inserir linha abaixo">+</button>
-                    <button class="btn-row-del" onclick="clearRow(${i})" title="Excluir linha">×</button>
+                    <button class="btn-row-add" onclick="addLinha(${i})">+</button>
+                    <button class="btn-row-del" onclick="delLinha(${i})">×</button>
                 </td>
             `;
             body.appendChild(tr);
@@ -241,40 +192,151 @@
         recalculate();
     }
 
+    function recalculate() {
+        const saldoAnterior = getSaldoAnterior(currentYear, currentMonth);
+        document.getElementById('valorMesAnterior').innerText = "R$ " + format(saldoAnterior);
+        let acumulado = saldoAnterior;
+        let totalEntradas = 0;
+        let totalSaidas = 0;
+        const rows = document.querySelectorAll('#tableBody tr');
+        fullDB[currentYear][currentMonth].forEach((data, i) => {
+            const e = parseFloat(data.e || 0);
+            const s = parseFloat(data.s || 0);
+            totalEntradas += e;
+            totalSaidas += s;
+            acumulado += (e - s);
+            const cell = rows[i].querySelector('.status-cell');
+            const temDado = data.d || data.desc || data.e || data.s;
+            cell.innerText = temDado ? format(acumulado) : '';
+            cell.style.color = acumulado >= 0 ? "#27ae60" : "#c0392b";
+        });
+        document.getElementById('totalEntradasMes').innerText = "R$ " + format(totalEntradas);
+        document.getElementById('totalSaidasMes').innerText = "R$ " + format(totalSaidas);
+        document.getElementById('saldoFinalReal').innerText = "R$ " + format(acumulado);
+        document.getElementById('saldoFinalReal').style.color = acumulado >= 0 ? '#27ae60' : '#c0392b';
+    }
+
+    function update(i, field, val) {
+        if (field === 'desc') val = val.toUpperCase();
+        fullDB[currentYear][currentMonth][i][field] = val;
+        saveDataSilent(); // Salvamento automático ao digitar
+        recalculate();
+    }
+
+    function addLinha(index) {
+        fullDB[currentYear][currentMonth].splice(index + 1, 0, {d:'', desc:'', e:'', s:''});
+        saveDataSilent(); // Salvamento automático ao adicionar linha
+        renderTable();
+    }
+
+    function delLinha(i) {
+        fullDB[currentYear][currentMonth].splice(i, 1);
+        if(fullDB[currentYear][currentMonth].length < 5) fullDB[currentYear][currentMonth].push({d:'', desc:'', e:'', s:''});
+        saveDataSilent(); // Salvamento automático ao excluir linha
+        renderTable();
+    }
+
+    function ordenarPorDia() {
+        let dados = fullDB[currentYear][currentMonth].filter(r => r.d || r.desc || r.e || r.s);
+        dados.sort((a, b) => (parseInt(a.d) || 0) - (parseInt(b.d) || 0));
+        while(dados.length < 15) dados.push({d:'', desc:'', e:'', s:''});
+        fullDB[currentYear][currentMonth] = dados;
+        saveDataSilent();
+        renderTable();
+    }
+
+    function limparMesInteiro() {
+        if(confirm("Deseja apagar todos os dados deste mês?")) {
+            fullDB[currentYear][currentMonth] = Array(15).fill().map(() => ({d:'', desc:'', e:'', s:''}));
+            saveDataSilent();
+            renderTable();
+        }
+    }
+
+    function changeYear() {
+        currentYear = document.getElementById('selectAno').value;
+        checkAndCreateYear(currentYear);
+        renderTable();
+        atualizarTextoFiltro();
+    }
+
+    function renderTabs() {
+        const cont = document.getElementById('tabContainer');
+        cont.innerHTML = '';
+        months.forEach(m => {
+            const b = document.createElement('button');
+            b.className = `tab-btn ${m === currentMonth ? 'active' : ''}`;
+            b.innerText = m;
+            b.onclick = () => { 
+                currentMonth = m; 
+                localStorage.setItem('lastActiveMonth', m);
+                renderTabs(); renderTable(); atualizarTextoFiltro();
+            };
+            cont.appendChild(b);
+        });
+    }
+
     function copyPreviousMonth() {
         const idx = months.indexOf(currentMonth);
-        if (idx > 0 && confirm(`Clonar dados de ${months[idx-1]} para ${currentMonth}?`)) {
+        if (idx > 0 && confirm(`Copiar projeção de ${months[idx-1]} para ${currentMonth}?`)) {
             fullDB[currentYear][currentMonth] = JSON.parse(JSON.stringify(fullDB[currentYear][months[idx-1]]));
-            renderTable(); saveDataSilent();
+            saveDataSilent();
+            renderTable();
         }
     }
 
     function exportBackup() {
-    const agora = new Date();
-    
-    // Criamos as partes individualmente para facilitar a montagem
-    const ano = agora.getFullYear();
-    const mes = String(agora.getMonth() + 1).padStart(2, '0');
-    const dia = String(agora.getDate()).padStart(2, '0');
-    const hora = String(agora.getHours()).padStart(2, '0');
-    const min = String(agora.getMinutes()).padStart(2, '0');
-
-    // Montagem conforme seu exemplo: backup_financeiro_2026_26-02-2026_01h34
-    const dataFormatada = `${ano}_${dia}-${mes}-${ano}_${hora}h${min}`;
-
-    const blob = new Blob([JSON.stringify(fullDB)], {type: 'text/plain'});
-    const a = document.createElement('a'); 
-    a.href = URL.createObjectURL(blob);
-    
-    // Note que removi o "global" do nome para bater exatamente com seu exemplo
-    a.download = `backup_financeiro_${dataFormatada}.txt`; 
-    a.click();
-}
+        const agora = new Date();
+        const ano = agora.getFullYear();
+        const mes = String(agora.getMonth() + 1).padStart(2, '0');
+        const dia = String(agora.getDate()).padStart(2, '0');
+        const hora = String(agora.getHours()).padStart(2, '0');
+        const min = String(agora.getMinutes()).padStart(2, '0');
+        const nomeArquivo = `backup_financeiro_${ano}_${dia}-${mes}-${ano}_${hora}h${min}.txt`;
+        const blob = new Blob([JSON.stringify(fullDB)], {type: 'text/plain'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = nomeArquivo; a.click();
+    }
 
     function importBackup(event) {
         const reader = new FileReader();
-        reader.onload = (e) => { fullDB = JSON.parse(e.target.result); location.reload(); };
+        reader.onload = (e) => { 
+            fullDB = JSON.parse(e.target.result); 
+            saveDataSilent();
+            renderTable(); 
+            alert("Backup restaurado!");
+        };
         reader.readAsText(event.target.files[0]);
+    }
+
+    function importarArquivoBanco() {
+        const fileInput = document.getElementById('fileExtrato');
+        if (!fileInput.files[0]) return alert("Selecione um arquivo!");
+        const reader = new FileReader();
+        const mesAtualIdx = months.indexOf(currentMonth) + 1;
+        reader.onload = function(e) {
+            const linhas = e.target.result.split('\n');
+            let novos = [];
+            linhas.forEach(linha => {
+                const regData = /(\d{2})\/(\d{2})/;
+                const regVal = /(-?\s?\d+[\d\.,]*,\d{2})/;
+                const dMatch = linha.match(regData);
+                const vMatch = linha.match(regVal);
+                if (dMatch && vMatch && parseInt(dMatch[2]) === mesAtualIdx) {
+                    let v = parseFloat(vMatch[0].replace(/\s/g, '').replace('.', '').replace(',', '.'));
+                    let desc = linha.replace(regData, '').replace(regVal, '').replace(/[\t\s;]+/g, ' ').trim();
+                    desc = desc.replace(/^\/\d{4}/, '').replace(/^[\/\s]+/, '').trim();
+                    novos.push({ d: dMatch[1], desc: desc.toUpperCase(), e: v > 0 ? v.toString() : "", s: v < 0 ? Math.abs(v).toString() : "" });
+                }
+            });
+            if (novos.length > 0) {
+                fullDB[currentYear][currentMonth] = [...fullDB[currentYear][currentMonth].filter(r => r.d || r.desc || r.e || r.s), ...novos];
+                saveDataSilent();
+                ordenarPorDia();
+                alert("Importado!");
+            } else { alert("Nenhum dado deste mês encontrado."); }
+        };
+        reader.readAsText(fileInput.files[0], 'ISO-8859-1');
     }
 
     init();
