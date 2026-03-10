@@ -194,35 +194,62 @@
             }
         }
 
-        async function sincronizarDadosMestres() {
-            const tk = localStorage.getItem('qt_full_token');
-            if (!tk) return alert("API KEY é necessária!");
-            const btn = document.getElementById('btn-sync-master');
-            const icon = document.getElementById('sync-icon-master');
-            btn.disabled = true; icon.classList.add('loading-spin');
-            const tks = [...new Set([...Object.keys(DB.ACOES), ...Object.keys(DB.FIIS), ...carteira.map(i => i.t)])].join(',');
-            try {
-                const r = await fetch(`https://brapi.dev/api/quote/${tks}?token=${tk}`);
-                const data = await r.json();
-                if (data.results) {
-                    data.results.forEach(s => {
-                        const ticker = s.symbol;
-                        const cat = (ticker.endsWith('11')) ? 'FIIS' : 'ACOES';
-                        if (!DB[cat][ticker]) DB[cat][ticker] = { l: 0, v: 0, d: 0 };
-                        DB[cat][ticker].l = s.earningsPerShare || DB[cat][ticker].l || 0;
-                        DB[cat][ticker].v = s.bookValue || DB[cat][ticker].v || 0;
-                        if (s.dividendYield && s.regularMarketPrice) DB[cat][ticker].d = (s.dividendYield * s.regularMarketPrice / 100);
-                        precos[ticker] = s.regularMarketPrice;
-                    });
-                    localStorage.setItem('qt_db_custom', JSON.stringify(DB));
-                    const agora = new Date().toLocaleString('pt-BR');
-                    localStorage.setItem('qt_last_sync_master', agora);
-                    document.getElementById('last-sync').innerText = agora;
-                    autoPreencher(document.getElementById('in-ticker').value);
-                }
-            } catch (e) { alert("Erro na sincronização."); } finally { btn.disabled = false; icon.classList.remove('loading-spin'); updateUI(); }
-        }
+        // Substitua suas funções de sincronização por estas:
 
+async function sincronizarDadosMestres() {
+    const rawToken = document.getElementById('api-token').value || localStorage.getItem('qt_full_token');
+    const tk = rawToken ? rawToken.trim() : null;
+    if (!tk) return alert("Insira a API KEY!");
+
+    const btn = document.getElementById('btn-sync-master');
+    const icon = document.getElementById('sync-icon-master');
+    btn.disabled = true; icon.classList.add('loading-spin');
+
+    const lista = [...new Set([
+        ...Object.keys(DB.ACOES), 
+        ...Object.keys(DB.FIIS), 
+        ...carteira.map(i => i.t)
+    ])].filter(t => t && t.length > 2).map(t => t.trim().toUpperCase());
+
+    // EM VEZ DE ENVIAR TUDO JUNTO, VAMOS UM POR UM
+    for (const ticker of lista) {
+        try {
+            const r = await fetch(`https://brapi.dev/api/quote/${ticker}?token=${tk}`);
+            const data = await r.json();
+
+            if (data.results && data.results[0]) {
+                const s = data.results[0];
+                const cat = (ticker.endsWith('11')) ? 'FIIS' : 'ACOES';
+                
+                if (!DB[cat][ticker]) DB[cat][ticker] = { l: 0, v: 0, d: 0 };
+                
+                DB[cat][ticker].l = s.earningsPerShare || DB[cat][ticker].l || 0;
+                DB[cat][ticker].v = s.bookValue || DB[cat][ticker].v || 0;
+                
+                if (s.dividendYield && s.regularMarketPrice) {
+                    DB[cat][ticker].d = (s.dividendYield * s.regularMarketPrice / 100);
+                }
+                precos[ticker] = s.regularMarketPrice;
+                
+                // Atualiza a tela a cada ativo que chega para você ver o progresso
+                updateUI(); 
+            }
+            // Pequena pausa de 100ms para não sobrecarregar seu limite de requisições por minuto
+            await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (e) {
+            console.error(`Erro no ticker ${ticker}:`, e);
+        }
+    }
+
+    localStorage.setItem('qt_db_custom', JSON.stringify(DB));
+    const agora = new Date().toLocaleString('pt-BR');
+    localStorage.setItem('qt_last_sync_master', agora);
+    document.getElementById('last-sync').innerText = agora;
+    document.getElementById('status-api').className = "h-2 w-2 rounded-full bg-green-500";
+    btn.disabled = false; icon.classList.remove('loading-spin');
+}
+
+// Repita a mesma lógica de loop na função fetchMercado se necessário
         function setAba(aba) {
             abaAtiva = aba;
             document.querySelectorAll('.tab-btn').forEach(el => { el.classList.remove('tab-active', 'bg-white'); el.classList.add('text-slate-900', 'bg-slate-50'); });
@@ -234,17 +261,43 @@
         function toggleDrawer() { document.getElementById('market-drawer').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
         function cleanNum(val) { if (!val) return 0; let n = String(val).replace(',', '.'); return parseFloat(n) || 0; }
 
-        async function fetchMercado() {
-            const tk = localStorage.getItem('qt_full_token'); if(!tk) return;
-            const tks = [...new Set([...Object.keys(DB.ACOES), ...Object.keys(DB.FIIS), ...carteira.map(i => i.t)])].join(',');
-            try {
-                const r = await fetch(`https://brapi.dev/api/quote/${tks}?token=${tk}`);
-                const d = await r.json();
-                if(d.results) d.results.forEach(s => precos[s.symbol] = s.regularMarketPrice);
-                document.getElementById('status-api').className = "h-2 w-2 rounded-full bg-green-500";
-                updateUI();
-            } catch (e) {}
+      async function fetchMercado() {
+    const apiInput = document.getElementById('api-token').value.trim();
+    const tk = apiInput || localStorage.getItem('qt_full_token');
+    
+    if(!tk) return;
+
+    // Garante que os tickers estejam limpos e sem espaços
+    const listaAtivos = [...new Set([
+        ...Object.keys(DB.ACOES), 
+        ...Object.keys(DB.FIIS), 
+        ...carteira.map(i => i.t)
+    ])].filter(t => t && t.trim() !== "").map(t => t.trim().toUpperCase());
+
+    const tks = listaAtivos.join(',');
+
+    try {
+        const r = await fetch(`https://brapi.dev/api/quote/${tks}?token=${tk}`);
+        const d = await r.json();
+        
+        if(d.results) {
+            d.results.forEach(s => {
+                precos[s.symbol] = s.regularMarketPrice;
+                // Atualiza também LPA/VPA se vierem na consulta
+                const cat = s.symbol.endsWith('11') ? 'FIIS' : 'ACOES';
+                if(DB[cat][s.symbol]) {
+                    if(s.earningsPerShare) DB[cat][s.symbol].l = s.earningsPerShare;
+                    if(s.bookValue) DB[cat][s.symbol].v = s.bookValue;
+                }
+            });
+            document.getElementById('status-api').className = "h-2 w-2 rounded-full bg-green-500";
+            updateUI();
         }
+    } catch (e) {
+        console.error("Erro na API:", e);
+        document.getElementById('status-api').className = "h-2 w-2 rounded-full bg-red-500";
+    }
+}
 
         function updateUI() {
             const container = document.getElementById('lista-ativos'); container.innerHTML = "";
@@ -367,6 +420,42 @@
             setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR'); }, 1000);
             updateUI();
         };
+
+// --- COPIE A PARTIR DAQUI ---
+
+function configurarAtualizacaoAutomatica() {
+    // 1000ms * 60s * 60m = 1 Hora
+    const UMA_HORA = 3600000; 
+
+    setInterval(() => {
+        console.log("Iniciando atualização automática programada...");
+        
+        // Verifica se o navegador está online e se a API KEY existe
+        const tk = localStorage.getItem('qt_full_token');
+        
+        if (tk && tk.trim() !== "") {
+            // Chama a sua função que já faz a fila de ativos um por um
+            sincronizarDadosMestres();
+        }
+    }, UMA_HORA);
+}
+
+// AJUSTE NA WINDOW.ONLOAD:
+// Localize a sua função window.onload existente e certifique-se de que 
+// ela chame a função acima, ficando desta forma:
+
+const originalOnload = window.onload;
+window.onload = () => {
+    if (originalOnload) originalOnload();
+    
+    // Ativa o temporizador de hora em hora
+    configurarAtualizacaoAutomatica();
+    
+    console.log("Sistema de atualização automática de 1h ativado.");
+};
+
+// --- ATÉ AQUI ---
+
     </script>
 </body>
 </html>
