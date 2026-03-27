@@ -40,6 +40,9 @@ Source: "C:\MeusProjetos\CommandCenter\CENTRO_DE_COMANDO.html"; DestDir: "{app}"
 Source: "C:\MeusProjetos\CommandCenter\FleetManager PRO.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\MeusProjetos\CommandCenter\Gestão de Aluguéis.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\MeusProjetos\CommandCenter\Gestão Financeira Global.html"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\MeusProjetos\CommandCenter\Gestão Contas Bancárias.html"; DestDir: {app}; Flags: ignoreversion
+Source: "C:\MeusProjetos\CommandCenter\Gestão Cartões de Credito.html"; DestDir: {app}; Flags: ignoreversion
+Source: "C:\MeusProjetos\CommandCenter\Gestão de Cartões.html"; DestDir: {app}; Flags: ignoreversion
 Source: "C:\MeusProjetos\CommandCenter\Imóveis & IPTU & Serviços.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\MeusProjetos\CommandCenter\Quantum Trade.html"; DestDir: {app}; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files

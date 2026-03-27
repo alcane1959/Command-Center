@@ -84,7 +84,6 @@
         <button onclick="switchTab('telefone')" id="tab-telefone" class="nav-item" data-title="Telefone">📞</button>
         <button onclick="switchTab('gas')" id="tab-gas" class="nav-item" data-title="Gás">🔥</button>
         <button onclick="switchTab('saude')" id="tab-saude" class="nav-item" data-title="Assist. Médica">🏥</button>
-        <button onclick="switchTab('cartao')" id="tab-cartao" class="nav-item" data-title="Cartão de Crédito">💳</button>
         
         <div style="margin-top: auto; padding-bottom: 10px; display: flex; flex-direction: column; gap: 10px; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; width: 100%;">
             <button class="side-btn" onclick="exportarDados()" data-title="Exportar Backup">📤</button>
@@ -104,8 +103,7 @@
             agua: { label: "Água", icon: "💧", fields: ["Identificação", "Cidade", "RGI", "Link"] },
             telefone: { label: "Telefone", icon: "📞", fields: ["Linha/ID", "Operadora", "Número", "Link"] },
             gas: { label: "Gás", icon: "🔥", fields: ["Identificação", "Cidade", "Código", "Link"] },
-            saude: { label: "Assistência Médica", icon: "🏥", fields: ["Plano", "Operadora", "Matrícula", "Link"] },
-            cartao: { label: "Cartão de Crédito", icon: "💳", fields: ["Cartão", "Banco", "Final", "Link"] }
+            saude: { label: "Assistência Médica", icon: "🏥", fields: ["Plano", "Operadora", "Matrícula", "Link"] }
         };
 
         let data = JSON.parse(localStorage.getItem('asset_pro_master_data')) || {};
@@ -142,7 +140,6 @@
             render();
         }
 
-        // Função de Máscara Pontual para Telefone
         function maskTel(i) {
             let v = i.value.replace(/\D/g, "");
             v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
@@ -272,30 +269,21 @@
         }
 
         function exportarDados() {
-    const agora = new Date();
-    
-    // Preparando os componentes da data e hora
-    const dia = String(agora.getDate()).padStart(2, '0');
-    const mes = String(agora.getMonth() + 1).padStart(2, '0');
-    const ano = agora.getFullYear();
-    const hora = String(agora.getHours()).padStart(2, '0');
-    const min = String(agora.getMinutes()).padStart(2, '0');
-
-    // Montando o nome do arquivo conforme seu padrão: 2026_26-02-2026_10h03
-    const nomeArquivo = `backup_patrimonio_${ano}_${dia}-${mes}-${ano}_${hora}h${min}.json`;
-
-    // Criando o arquivo para download
-    const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    
-    a.href = url;
-    a.download = nomeArquivo;
-    a.click();
-    
-    // Limpeza da URL para liberar memória
-    URL.revokeObjectURL(url);
-}
+            const agora = new Date();
+            const dia = String(agora.getDate()).padStart(2, '0');
+            const mes = String(agora.getMonth() + 1).padStart(2, '0');
+            const ano = agora.getFullYear();
+            const hora = String(agora.getHours()).padStart(2, '0');
+            const min = String(agora.getMinutes()).padStart(2, '0');
+            const nomeArquivo = `backup_patrimonio_${ano}_${dia}-${mes}-${ano}_${hora}h${min}.json`;
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nomeArquivo;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
 
         function importarDados(e) {
             const reader = new FileReader();

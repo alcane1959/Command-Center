@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Parcelamentos - Alberto de Campos Neto</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+            --text-color: #333333;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .form-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            background: #f1f3f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .btn-add { background-color: var(--primary-color); color: white; }
+        .btn-update { background-color: var(--warning-color); color: white; display: none; }
+        .btn-move { background-color: #ecf0f1; color: #7f8c8d; font-size: 14px; padding: 5px 8px; }
+        .btn-move:hover { background-color: var(--accent-color); color: white; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th {
+            background-color: #ecf0f1;
+            color: var(--primary-color);
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .resumo-total {
+            background-color: #f1f3f5;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .negrito { font-weight: bold; }
+        .pago { color: var(--success-color); }
+        .pendente { color: var(--danger-color); }
+
+        @media print {
+            body { padding: 0; background: white; }
+            .container { box-shadow: none; width: 100%; zoom: 80%; }
+            .no-print { display: none; }
+            th, td { border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>💳 Controle de Compras Parceladas</h2>
+
+    <div class="no-print">
+        <div class="form-panel" id="compraForm">
+            <input type="hidden" id="editId">
+            <input type="text" id="cartaoNome" placeholder="Cartão (ex: Visa)">
+            <input type="text" id="descricao" placeholder="O que comprou?">
+            <input type="number" id="valorTotal" placeholder="Valor Total (R$)">
+            <input type="number" id="parcelas" placeholder="Vezes (ex: 10)">
+            <input type="date" id="dataInicio" title="Data da 1ª Parcela">
+            <button class="btn-add" id="btnAdd" onclick="adicionarCompra()">Adicionar</button>
+            <button class="btn-update" id="btnUpdate" onclick="salvarEdicao()">Salvar Alteração</button>
+        </div>
+
+        <div style="margin-bottom: 25px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button style="background:var(--success-color); color:white;" onclick="exportarDados()">Exportar Backup</button>
+            <button style="background:#8e44ad; color:white;" onclick="document.getElementById('importFile').click()">Importar JSON</button>
+            <input type="file" id="importFile" style="display:none" onchange="importarDados(event)">
+            <button style="background:#576574; color:white;" onclick="window.print()">Imprimir (80%)</button>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="no-print" style="width: 80px;">Ordem</th>
+                <th>Cartão</th>
+                <th>Descrição</th>
+                <th>Progresso</th>
+                <th>Valor Parcela</th>
+                <th>Saldo Devedor</th>
+                <th>Finaliza em</th>
+                <th class="no-print">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="listaCompras"></tbody>
+        <tfoot>
+            <tr class="resumo-total">
+                <td colspan="5" style="text-align: right; padding-right: 20px;">TOTAL DE DÉBITO RESTANTE:</td>
+                <td id="valorDebitoTotal" class="pendente">R$ 0,00</td>
+                <td colspan="2" class="no-print"></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<script>
+    let compras = JSON.parse(localStorage.getItem('financas_parcelas_alberto')) || [];
+
+    function adicionarCompra() {
+        const cartao = document.getElementById('cartaoNome').value;
+        const desc = document.getElementById('descricao').value;
+        const total = parseFloat(document.getElementById('valorTotal').value);
+        const qtd = parseInt(document.getElementById('parcelas').value);
+        const data = document.getElementById('dataInicio').value;
+
+        if (!cartao || isNaN(total) || isNaN(qtd) || !data) return alert("Preencha todos os campos.");
+
+        compras.push({ id: Date.now(), cartao, desc, total, qtd, dataInicio: data });
+        limparFormulario();
+        salvarERenderizar();
+    }
+
+    function mover(index, direcao) {
+        const novoIndex = index + direcao;
+        if (novoIndex >= 0 && novoIndex < compras.length) {
+            const temp = compras[index];
+            compras[index] = compras[novoIndex];
+            compras[novoIndex] = temp;
+            salvarERenderizar();
+        }
+    }
+
+    function renderizar() {
+        const lista = document.getElementById('listaCompras');
+        lista.innerHTML = '';
+        const hoje = new Date();
+        let somaDebitoTotal = 0;
+
+        compras.forEach((c, index) => {
+            const dataInicio = new Date(c.dataInicio + 'T00:00:00');
+            const valorUnit = c.total / c.qtd;
+            let meses = (hoje.getFullYear() - dataInicio.getFullYear()) * 12 + (hoje.getMonth() - dataInicio.getMonth());
+            let atual = Math.min(Math.max(meses + 1, 0), c.qtd);
+            const saldo = (c.qtd - atual) * valorUnit;
+            somaDebitoTotal += saldo;
+
+            const dataFinal = new Date(dataInicio);
+            dataFinal.setMonth(dataFinal.getMonth() + (c.qtd - 1));
+
+            lista.innerHTML += `
+                <tr>
+                    <td class="no-print">
+                        <button class="btn-move" onclick="mover(${index}, -1)">↑</button>
+                        <button class="btn-move" onclick="mover(${index}, 1)">↓</button>
+                    </td>
+                    <td class="negrito">${c.cartao}</td>
+                    <td>${c.desc}</td>
+                    <td>${atual} de ${c.qtd} ${atual === c.qtd ? '✅' : ''}</td>
+                    <td>${valorUnit.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
+                    <td class="negrito ${saldo > 0 ? 'pendente' : 'pago'}">${saldo.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
+                    <td>${dataFinal.toLocaleDateString('pt-BR')}</td>
+                    <td class="no-print">
+                        <button style="background:var(--warning-color); color:white;" onclick="editarCompra(${c.id})">Editar</button>
+                        <button style="background:var(--danger-color); color:white;" onclick="removerCompra(${c.id})">Excluir</button>
+                    </td>
+                </tr>`;
+        });
+
+        document.getElementById('valorDebitoTotal').innerText = somaDebitoTotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    }
+
+    function editarCompra(id) {
+        const item = compras.find(c => c.id === id);
+        if (!item) return;
+        document.getElementById('editId').value = item.id;
+        document.getElementById('cartaoNome').value = item.cartao;
+        document.getElementById('descricao').value = item.desc;
+        document.getElementById('valorTotal').value = item.total;
+        document.getElementById('parcelas').value = item.qtd;
+        document.getElementById('dataInicio').value = item.dataInicio;
+        document.getElementById('btnAdd').style.display = 'none';
+        document.getElementById('btnUpdate').style.display = 'block';
+        window.scrollTo(0, 0);
+    }
+
+    function salvarEdicao() {
+        const id = parseInt(document.getElementById('editId').value);
+        const index = compras.findIndex(c => c.id === id);
+        if (index !== -1) {
+            compras[index].cartao = document.getElementById('cartaoNome').value;
+            compras[index].desc = document.getElementById('descricao').value;
+            compras[index].total = parseFloat(document.getElementById('valorTotal').value);
+            compras[index].qtd = parseInt(document.getElementById('parcelas').value);
+            compras[index].dataInicio = document.getElementById('dataInicio').value;
+        }
+        limparFormulario();
+        salvarERenderizar();
+    }
+
+    function limparFormulario() {
+        document.getElementById('editId').value = '';
+        document.getElementById('cartaoNome').value = '';
+        document.getElementById('descricao').value = '';
+        document.getElementById('valorTotal').value = '';
+        document.getElementById('parcelas').value = '';
+        document.getElementById('dataInicio').value = '';
+        document.getElementById('btnAdd').style.display = 'block';
+        document.getElementById('btnUpdate').style.display = 'none';
+    }
+
+    function removerCompra(id) {
+        if(confirm("Excluir este registro?")) {
+            compras = compras.filter(c => c.id !== id);
+            salvarERenderizar();
+        }
+    }
+
+    function salvarERenderizar() {
+        localStorage.setItem('financas_parcelas_alberto', JSON.stringify(compras));
+        renderizar();
+    }
+
+    function exportarDados() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(compras));
+        const a = document.createElement('a');
+        const d = new Date();
+        const ts = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}-${d.getHours()}h${d.getMinutes()}`;
+        a.setAttribute("href", dataStr);
+        a.setAttribute("download", `backup_cartoes_${ts}.json`);
+        a.click();
+    }
+
+    function importarDados(e) {
+        const reader = new FileReader();
+        reader.onload = (ev) => { try { compras = JSON.parse(ev.target.result); salvarERenderizar(); } catch { alert("Erro!"); }};
+        reader.readAsText(e.target.files[0]);
+    }
+
+    renderizar();
+</script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Manager | Cartões de Crédito</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-bg: #f1f5f9; --accent: #3b82f6; --text-main: #1e293b;
+            --text-muted: #64748b; --white: #ffffff; --border: #e2e8f0; --danger: #ef4444; --success: #10b981;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--main-bg); color: var(--text-main); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        header.top-header {
+            background: var(--white);
+            padding: 15px 40px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        header.top-header h1 { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        header.top-header .logo-icon { color: var(--accent); font-weight: 800; }
+
+        .action-bar { display: flex; gap: 10px; }
+
+        .btn-action { 
+            background: var(--white); border: 1px solid var(--border); 
+            color: var(--text-main); padding: 8px 16px; border-radius: 8px; cursor: pointer; 
+            font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-action:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+        main { flex: 1; padding: 30px 40px; overflow-y: auto; }
+        
+        .add-form { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 1fr 1.5fr auto; gap: 10px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        input { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; width: 100%; transition: 0.2s; }
+        input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        .table-container { background: var(--white); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 15px 20px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; text-align: left; letter-spacing: 0.5px; }
+        td { padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 0.85rem; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        
+        .btn-add { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        .btn-del { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: 500; }
+        .btn-edit { color: var(--accent); background: none; border: none; cursor: pointer; font-size: 0.75rem; margin-right: 8px; font-weight: 500; }
+        .btn-save { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: bold; margin-right: 8px; }
+        .btn-insert { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; margin-right: 8px; font-weight: 500; }
+        
+        .action-link { background: #f1f5f9; color: var(--accent); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; display: inline-block; }
+        .action-link:hover { background: #e2e8f0; }
+        
+        .copy-btn { background: white; border: 1px solid var(--border); color: var(--text-muted); padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.65rem; margin-left: 5px; font-weight: 500; }
+
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #e11d48; font-size: 0.9rem; }
+
+        /* Elemento de Cabeçalho de Impressão (Escondido na tela) */
+        #print-header { display: none; }
+
+        /* Estilos de Impressão */
+        @media print {
+            body { 
+                background: white !important; 
+                overflow: visible !important; 
+                height: auto !important; 
+                zoom: 80%; 
+            }
+            #print-header { 
+                display: block !important; 
+                text-align: center; 
+                margin-bottom: 30px; 
+                border-bottom: 2px solid #1e293b;
+                padding-bottom: 10px;
+            }
+            #print-header h2 { margin: 0; font-size: 24px; text-transform: uppercase; color: #1e293b; font-weight: 800; }
+            #print-header p { margin: 5px 0 0; font-size: 14px; color: #64748b; font-weight: 600; }
+            
+            main { overflow: visible !important; padding: 0 !important; }
+            .top-header, .add-form, .action-bar, .btn-del, .btn-edit, .btn-insert, .copy-btn, .no-print { display: none !important; }
+            .table-container { border: 1px solid #e2e8f0 !important; box-shadow: none !important; }
+            td, th { border-bottom: 1px solid #e2e8f0 !important; }
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="print-header">
+        <h2>Relatório de Cartões de Crédito</h2>
+        <p id="print-investor-name"></p>
+        <p>Data de emissão: <span id="print-date"></span></p>
+    </div>
+
+    <header class="top-header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h1><span class="logo-icon">💳</span> Cartões de Crédito</h1>
+            <input type="text" id="nome-usuario" placeholder="Seu Nome" style="border: none; font-weight: 700; color: #3b82f6; width: 200px;" oninput="syncPrintHeader()">
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn-action" onclick="exportarDados()">
+                <span>📤</span> Exportar
+            </button>
+            <button class="btn-action" onclick="document.getElementById('importFile').click()">
+                <span>📥</span> Importar
+            </button>
+            <button class="btn-action" onclick="window.print()">
+                <span>🖨️</span> Imprimir
+            </button>
+            <input type="file" id="importFile" style="display:none" onchange="importarDados(event)">
+        </div>
+    </header>
+
+    <main id="main-content">
+        <div id="section-cartao" class="view-section">
+            
+            <div class="add-form">
+                <input type="text" id="cartaoF1" placeholder="Nome do Cartão (ex: Itaú)">
+                <input type="text" id="cartaoF2" placeholder="Banco (ex: Itaú Pagamentos)">
+                <input type="text" id="cartaoF3" placeholder="Número (16 dígitos)">
+                <input type="text" id="cartaoF4" placeholder="Link do Portal/Fatura">
+                <button class="btn-add" onclick="addItem()">Adicionar +</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cartão</th>
+                            <th>Banco</th>
+                            <th style="text-align: left; padding-left: 25px;">Número</th>
+                            <th>Link</th>
+                            <th class="no-print">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-cartao"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'asset_pro_cards_data';
+        let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { cartao: [], usuario: "" };
+        let editIdx = { index: null };
+
+        function syncPrintHeader() {
+            const nome = document.getElementById('nome-usuario').value;
+            document.getElementById('print-investor-name').innerText = nome ? "Titular: " + nome : "";
+            document.getElementById('print-date').innerText = new Date().toLocaleDateString('pt-BR');
+            data.usuario = nome;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function render() {
+            const body = document.getElementById(`body-cartao`);
+            if (!body) return;
+            body.innerHTML = '';
+            
+            document.getElementById('nome-usuario').value = data.usuario || "";
+            syncPrintHeader();
+
+            data.cartao.forEach((item, index) => {
+                if (editIdx.index === index) {
+                    body.innerHTML += `<tr>
+                        <td><input type="text" id="edit-f1" value="${item.nome}"></td>
+                        <td><input type="text" id="edit-f2" value="${item.cidade}"></td>
+                        <td><input type="text" id="edit-f3" value="${item.insc}"></td>
+                        <td><input type="text" id="edit-f4" value="${item.link}"></td>
+                        <td>
+                            <button class="btn-save" onclick="saveEdit(${index})">Salvar</button>
+                            <button class="btn-del" onclick="cancelEdit()">Cancelar</button>
+                        </td>
+                    </tr>`;
+                } else {
+                    body.innerHTML += `<tr>
+                        <td><strong>${item.nome || ''}</strong></td>
+                        <td>${item.cidade || ''}</td>
+                        <td><code>${item.insc || '****'}</code> <button class="copy-btn" onclick="copiar('${item.insc}', this)">Copiar</button></td>
+                        <td>
+                            ${item.link ? `<a href="${item.link}" target="_blank" class="action-link">Portal</a>` : '-'}
+                        </td>
+                        <td class="no-print">
+                            <button class="btn-insert" onclick="insertRow(${index})">Inserir ↓</button>
+                            <button class="btn-edit" onclick="setEdit(${index})">Editar</button>
+                            <button class="btn-del" onclick="removeItem(${index})">Excluir</button>
+                        </td>
+                    </tr>`;
+                }
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function addItem() {
+            const f1Val = document.getElementById('cartaoF1').value;
+            if (!f1Val) return;
+            data.cartao.push({ 
+                id: Date.now(), 
+                nome: f1Val, 
+                cidade: document.getElementById('cartaoF2').value,
+                insc: document.getElementById('cartaoF3').value,
+                link: document.getElementById('cartaoF4').value 
+            });
+            limparFormulario();
+            render();
+        }
+
+        function insertRow(index) {
+            data.cartao.splice(index + 1, 0, { id: Date.now(), nome: "", cidade: "", insc: "", link: "" });
+            setEdit(index + 1);
+        }
+
+        function setEdit(index) { editIdx.index = index; render(); }
+        function cancelEdit() { editIdx.index = null; render(); }
+
+        function saveEdit(index) {
+            const item = data.cartao[index];
+            item.nome = document.getElementById('edit-f1').value;
+            item.cidade = document.getElementById('edit-f2').value;
+            item.insc = document.getElementById('edit-f3').value;
+            item.link = document.getElementById('edit-f4').value;
+            cancelEdit();
+        }
+
+        function removeItem(index) {
+            if(confirm("Excluir este cartão?")) { data.cartao.splice(index, 1); render(); }
+        }
+
+        function limparFormulario() {
+            ['cartaoF1', 'cartaoF2', 'cartaoF3', 'cartaoF4'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        function copiar(texto, btn) {
+            if(!texto || texto === "") return;
+            navigator.clipboard.writeText(texto);
+            const old = btn.innerText; btn.innerText = "Copiado!";
+            setTimeout(() => { btn.innerText = old; }, 1000);
+        }
+
+        function exportarDados() {
+            const agora = new Date();
+            const dia = String(agora.getDate()).padStart(2, '0');
+            const mes = String(agora.getMonth() + 1).padStart(2, '0');
+            const ano = agora.getFullYear();
+            const hora = String(agora.getHours()).padStart(2, '0');
+            const min = String(agora.getMinutes()).padStart(2, '0');
+            const nomeArquivo = `backup_cartoes_${ano}_${dia}-${mes}-${ano}_${hora}h${min}.json`;
+
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nomeArquivo;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importarDados(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => { 
+                try { 
+                    const imported = JSON.parse(ev.target.result);
+                    if(imported.cartao) { data = imported; render(); }
+                } catch(err) { alert("Arquivo inválido."); } 
+            };
+            reader.readAsText(e.target.files[0]);
+        }
+
+        render();
+    </script>
+</body>
+</html>
