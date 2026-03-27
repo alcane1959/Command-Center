@@ -280,14 +280,24 @@
     }
 
     function exportarDados() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(compras));
-        const a = document.createElement('a');
-        const d = new Date();
-        const ts = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}-${d.getHours()}h${d.getMinutes()}`;
-        a.setAttribute("href", dataStr);
-        a.setAttribute("download", `backup_cartoes_${ts}.json`);
-        a.click();
-    }
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(compras));
+    const a = document.createElement('a');
+    const d = new Date();
+
+    // Formatação manual dos componentes da data
+    const dia = d.getDate().toString().padStart(2, '0');
+    const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+    const ano = d.getFullYear();
+    const hora = d.getHours().toString().padStart(2, '0');
+    const minuto = d.getMinutes().toString().padStart(2, '0');
+
+    // Montagem do nome conforme solicitado: backup_compras_ccp_2026_DD-MM-AAAA_HHhMM
+    const nomeArquivo = `backup_compras_ccp_${ano}_${dia}-${mes}-${ano}_${hora}h${minuto}.json`;
+
+    a.setAttribute("href", dataStr);
+    a.setAttribute("download", nomeArquivo);
+    a.click();
+}
 
     function importarDados(e) {
         const reader = new FileReader();
