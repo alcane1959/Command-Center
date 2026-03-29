@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Imóveis - Alberto</title>
+    <style>
+        :root {
+            --bg-body: #f4f7f6;
+            --bg-card: #ffffff;
+            --border-color: #cccccc;
+            --tab-inactive: #e0e0e0;
+        }
+
+        body { font-family: Arial, sans-serif; background-color: var(--bg-body); margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; }
+
+        /* ABAS */
+        .tabs-container { display: flex; gap: 5px; margin-bottom: -1px; flex-wrap: wrap; align-items: flex-end; }
+        .tab { 
+            padding: 10px 20px; background: var(--tab-inactive); border: 1px solid var(--border-color);
+            border-bottom: none; border-radius: 5px 5px 0 0; cursor: pointer; font-size: 0.9rem;
+        }
+        .tab.active { background: var(--bg-card); font-weight: bold; border-bottom: 2px solid white; }
+        .btn-add-tab { padding: 8px 15px; background: #ddd; border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 5px; }
+
+        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0 5px 5px 5px; padding: 20px; margin-bottom: 20px; }
+        .row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .field { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
+        label { font-weight: bold; font-size: 0.8rem; margin-bottom: 3px; color: #555; }
+        input { border: 1px solid var(--border-color); padding: 8px; border-radius: 3px; font-size: 0.9rem; }
+
+        /* BARRA FIXA */
+        .toolbar {
+            background: #f0f0f0; padding: 10px; border: 1px solid var(--border-color);
+            display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        .toolbar button, .toolbar select {
+            cursor: pointer; padding: 5px 8px; background: white; border: 1px solid #bbb; border-radius: 3px; font-size: 0.85rem;
+        }
+
+        .divider { width: 1px; height: 20px; background: #ccc; margin: 0 5px; }
+
+        /* EDITOR */
+        #editor {
+            width: 100%; min-height: 800px; border: 1px solid var(--border-color); border-top: none;
+            padding: 50px; background: white; font-family: 'Times New Roman', serif; font-size: 12pt;
+            line-height: 1.5; box-sizing: border-box; outline: none; text-align: justify;
+        }
+
+        /* LIXEIRA */
+        .delete-footer { text-align: center; margin-top: 25px; margin-bottom: 15px; padding-top: 10px; border-top: 1px solid #eee;}
+        .btn-trash { 
+            background: none; border: none; cursor: pointer; font-size: 2rem; color: #ff0000 !important;
+            transition: 0.2s; padding: 10px; line-height: 1;
+        }
+        .btn-trash:hover { transform: scale(1.2); }
+
+        @media print {
+            .no-print, .toolbar, .tabs-container, .delete-footer { display: none !important; }
+            body { background: white; padding: 0; }
+            .card { border: none; padding: 0; }
+            #editor { border: none !important; padding: 0; }
+            @page { margin: 2cm; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tabs-container no-print" id="tab-list"></div>
+
+    <div class="card no-print">
+        <div class="row">
+            <div class="field"><label>Imóvel (Nome na Aba):</label><input type="text" id="in-imovel" oninput="updateCurrentData()"></div>
+            <div class="field"><label>Cidade/Bairro:</label><input type="text" id="in-pref" oninput="updateCurrentData()"></div>
+            <div class="field"><label>IPTU:</label><input type="text" id="in-iptu" oninput="updateCurrentData()"></div>
+            <div class="field"><label>Matrícula:</label><input type="text" id="in-mat" oninput="updateCurrentData()"></div>
+        </div>
+    </div>
+
+    <div class="toolbar no-print">
+        <select onchange="document.execCommand('fontName', false, this.value)">
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Arial">Arial</option>
+            <option value="Courier New">Courier</option>
+        </select>
+
+        <select onchange="changeFontSize(this.value)">
+            <option value="10pt">10</option><option value="11pt">11</option>
+            <option value="12pt" selected>12</option><option value="14pt">14</option>
+            <option value="16pt">16</option>
+        </select>
+
+        <div class="divider"></div>
+        <button onclick="document.execCommand('bold')">B</button>
+        <button onclick="document.execCommand('italic')">I</button>
+        <button onclick="document.execCommand('underline')">U</button>
+        <button onclick="document.execCommand('hiliteColor', false, 'yellow')" title="Marcar Amarelo">🖍️</button>
+        <button onclick="document.execCommand('hiliteColor', false, 'transparent')" title="Remover Marcação">🧼</button>
+
+        <div class="divider"></div>
+        <button onclick="document.execCommand('justifyLeft')">⬅</button>
+        <button onclick="document.execCommand('justifyCenter')">⬆</button>
+        <button onclick="document.execCommand('justifyRight')">➡</button>
+        <button onclick="document.execCommand('justifyFull')">≡</button>
+
+        <div class="divider"></div>
+        <button onclick="insertDate()">Data</button>
+        <button onclick="clearAll()">Limpar</button>
+        <button onclick="copyToClipboard()">Copiar</button>
+        <button onclick="window.print()">Imprimir</button>
+        <button onclick="exportBackup()">Backup</button>
+        <button onclick="document.getElementById('fileInput').click()">Importar</button>
+        <input type="file" id="fileInput" style="display:none" onchange="importBackup(event)">
+    </div>
+
+    <div id="editor" contenteditable="true" oninput="updateCurrentData()"></div>
+
+    <div class="delete-footer no-print">
+        <button class="btn-trash" onclick="deleteImovel()" title="Excluir este imóvel permanentemente">&#128465;</button>
+    </div>
+</div>
+
+<script>
+    let imoveis = [{ nome: 'Imóvel 1', pref: '', iptu: '', mat: '', contrato: '' }];
+    let activeIndex = 0;
+
+    function renderTabs() {
+        const container = document.getElementById('tab-list');
+        container.innerHTML = '';
+        imoveis.forEach((imovel, index) => {
+            const btn = document.createElement('button');
+            btn.className = `tab ${index === activeIndex ? 'active' : ''}`;
+            btn.innerText = imovel.nome || `Imóvel ${index + 1}`;
+            btn.onclick = () => switchTab(index);
+            container.appendChild(btn);
+        });
+        const addBtn = document.createElement('button');
+        addBtn.className = 'btn-add-tab';
+        addBtn.innerText = '+';
+        addBtn.onclick = addImovel;
+        container.appendChild(addBtn);
+    }
+
+    function switchTab(index) {
+        activeIndex = index;
+        loadCurrentData();
+        renderTabs();
+    }
+
+    function addImovel() {
+        imoveis.push({ nome: `Novo Imóvel`, pref: '', iptu: '', mat: '', contrato: '' });
+        activeIndex = imoveis.length - 1;
+        loadCurrentData();
+        renderTabs();
+        saveToStorage();
+    }
+
+    function deleteImovel() {
+        if (imoveis.length === 1) {
+            alert("Você não pode excluir o último imóvel da lista.");
+            return;
+        }
+        if (confirm(`Excluir permanentemente o imóvel "${imoveis[activeIndex].nome}"?`)) {
+            imoveis.splice(activeIndex, 1);
+            activeIndex = 0;
+            loadCurrentData();
+            renderTabs();
+            saveToStorage();
+        }
+    }
+
+    function loadCurrentData() {
+        const item = imoveis[activeIndex];
+        document.getElementById('in-imovel').value = item.nome || '';
+        document.getElementById('in-pref').value = item.pref || '';
+        document.getElementById('in-iptu').value = item.iptu || '';
+        document.getElementById('in-mat').value = item.mat || '';
+        document.getElementById('editor').innerHTML = item.contrato || '';
+    }
+
+    function updateCurrentData() {
+        imoveis[activeIndex].nome = document.getElementById('in-imovel').value;
+        imoveis[activeIndex].pref = document.getElementById('in-pref').value;
+        imoveis[activeIndex].iptu = document.getElementById('in-iptu').value;
+        imoveis[activeIndex].mat = document.getElementById('in-mat').value;
+        imoveis[activeIndex].contrato = document.getElementById('editor').innerHTML;
+        renderTabs();
+        saveToStorage();
+    }
+
+    function saveToStorage() {
+        localStorage.setItem('alberto_multicontratos', JSON.stringify(imoveis));
+    }
+
+    window.onload = function() {
+        const saved = localStorage.getItem('alberto_multicontratos');
+        if (saved) imoveis = JSON.parse(saved);
+        renderTabs();
+        loadCurrentData();
+    };
+
+    function clearAll() {
+        if(confirm("Limpar texto deste contrato?")) {
+            document.getElementById('editor').innerHTML = '';
+            updateCurrentData();
+        }
+    }
+
+    function copyToClipboard() {
+        const editor = document.getElementById('editor');
+        const range = document.createRange();
+        range.selectNode(editor);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        try {
+            document.execCommand('copy');
+            alert("Contrato copiado com sucesso!");
+        } catch (err) {
+            alert("Erro ao copiar.");
+        }
+        window.getSelection().removeAllRanges();
+    }
+
+    function exportBackup() {
+        const now = new Date();
+        const ano = now.getFullYear();
+        const dataF = String(now.getDate()).padStart(2, '0') + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + ano;
+        const horaF = String(now.getHours()).padStart(2, '0') + "h" + String(now.getMinutes()).padStart(2, '0');
+        const nomeArquivo = `backup_contratos_aluguel_${ano}_${dataF}_${horaF}.json`;
+        const blob = new Blob([JSON.stringify(imoveis)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = nomeArquivo; a.click();
+    }
+
+    function importBackup(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            imoveis = JSON.parse(e.target.result);
+            activeIndex = 0;
+            saveToStorage();
+            location.reload();
+        };
+        reader.readAsText(file);
+    }
+
+    function changeFontSize(size) {
+        document.execCommand('fontSize', false, '7');
+        const fontSpans = document.getElementsByTagName("font");
+        for (let i = 0; i < fontSpans.length; i++) {
+            if (fontSpans[i].size == "7") {
+                fontSpans[i].removeAttribute("size");
+                fontSpans[i].style.fontSize = size;
+            }
+        }
+        updateCurrentData();
+    }
+
+    function insertDate() {
+        const d = new Date();
+        const dataF = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+        document.execCommand('insertText', false, "São Paulo, " + dataF);
+        updateCurrentData();
+    }
+</script>
+
+</body>
+</html>
