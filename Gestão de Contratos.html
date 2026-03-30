@@ -42,7 +42,7 @@
             display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
             position: sticky; top: 0; z-index: 1000;
         }
-
+        .toolbar button { font-size: 1.1rem; }
         .toolbar button, .toolbar select {
             cursor: pointer; padding: 5px 8px; background: white; border: 1px solid #bbb; border-radius: 3px; font-size: 0.85rem;
         }
@@ -104,6 +104,9 @@
         <button onclick="document.execCommand('underline')">U</button>
         <button onclick="document.execCommand('hiliteColor', false, 'yellow')" title="Marcar">🖍️</button>
         <button onclick="document.execCommand('hiliteColor', false, 'transparent')" title="Limpar">🧼</button>
+        <button onclick="document.execCommand('foreColor', false, 'red')" title="Texto Vermelho" style="color: red;">A</button>
+        <button onclick="document.execCommand('foreColor', false, 'blue')" title="Texto Azul" style="color: blue;">A</button>
+        <button onclick="document.execCommand('foreColor', false, 'black')" title="Texto Preto" style="color: black;">A</button>
         
         <div class="divider"></div>
         <button onclick="document.execCommand('justifyLeft')" title="Esquerda">⬅</button>
@@ -112,14 +115,24 @@
         <button onclick="document.execCommand('justifyFull')" title="Justificado">≡</button>
 
         <div class="divider"></div>
-        <button onclick="insertDate()">Data</button>
-        <button onclick="clearAll()">Limpar</button>
-        <button onclick="copyToClipboard()">Copiar</button>
-        <button onclick="window.print()">Imprimir</button>
-        <button onclick="exportBackup()">Backup</button>
-        <button onclick="document.getElementById('fileInput').click()">Importar</button>
-        <input type="file" id="fileInput" style="display:none" onchange="importBackup(event)">
+                    <button onclick="insertDate()" title="Inserir Data">📅</button>
+                    <button onclick="clearAll()" title="Limpar Tudo">🗑️</button>
+                    <button onclick="copyToClipboard()" title="Copiar Conteúdo">📋</button>
+                    <button onclick="window.print()" title="Imprimir">🖨️</button>
+                    <button onclick="exportBackup()" title="Fazer Backup">💾</button>
+                    <button onclick="document.getElementById('fileInput').click()" title="Importar Backup">📂</button>
+                    <input type="file" id="fileInput" style="display:none" onchange="importBackup(event)">
     </div>
+
+<div class="no-print" style="background:#eee; padding:8px 8px 8px 20px; border:1px solid #ccc; display:flex; gap:10px; font-size:13px; align-items:center; margin-left: 0;">
+    <span>Simular:</span>
+    <input type="date" id="s-data" value="" style="padding:2px; border:1px solid #bbb; border-radius:3px;">
+    <span>+</span>
+    <input type="number" id="s-mes" value="1" style="width:40px; padding:2px; border:1px solid #bbb; border-radius:3px;"> 
+    <span>meses</span>
+    <button style="cursor:pointer; padding:5px 8px; background:white; border:1px solid #bbb; border-radius:3px; font-size:1.1rem;" onclick="let d=new Date(document.getElementById('s-data').value+'T12:00:00'); d.setMonth(d.getMonth()+parseInt(document.getElementById('s-mes').value)); document.getElementById('s-res').innerText=d.toLocaleDateString('pt-BR');" title="Calcular Data">🧮</button>
+    <span id="s-res" style="font-weight:; background:#fff; padding:2px 8px; border:1px solid #ccc; border-radius:3px;">---</span>
+</div>
 
     <div id="editor" contenteditable="true" oninput="updateCurrentData()"></div>
 
