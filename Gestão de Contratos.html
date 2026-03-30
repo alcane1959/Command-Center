@@ -15,16 +15,22 @@
         body { font-family: Arial, sans-serif; background-color: var(--bg-body); margin: 0; padding: 20px; }
         .container { max-width: 1000px; margin: auto; }
 
-        /* ABAS */
+        /* ABAS ARRASTÁVEIS - AJUSTE DO CURSOR PARA SETINHA */
         .tabs-container { display: flex; gap: 5px; margin-bottom: -1px; flex-wrap: wrap; align-items: flex-end; }
         .tab { 
             padding: 10px 20px; background: var(--tab-inactive); border: 1px solid var(--border-color);
-            border-bottom: none; border-radius: 5px 5px 0 0; cursor: pointer; font-size: 0.9rem;
+            border-bottom: none; border-radius: 5px 5px 0 0; 
+            cursor: default !important; /* Aqui forcei a setinha padrão */
+            font-size: 0.9rem;
+            user-select: none; transition: 0.2s;
         }
-        .tab.active { background: var(--bg-card); font-weight: bold; border-bottom: 2px solid white; }
+        .tab:active { cursor: default !important; } /* Mantém a seta mesmo clicando */
+        .tab.active { background: var(--bg-card); font-weight: bold; border-bottom: 2px solid white; z-index: 2; }
+        .tab.dragging { opacity: 0.4; background: #fffde7; border: 1px dashed #999; }
+
         .btn-add-tab { padding: 8px 15px; background: #ddd; border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 5px; }
 
-        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0 5px 5px 5px; padding: 20px; margin-bottom: 20px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0 5px 5px 5px; padding: 20px; margin-bottom: 20px; position: relative; z-index: 1; }
         .row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
         .field { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
         label { font-weight: bold; font-size: 0.8rem; margin-bottom: 3px; color: #555; }
@@ -87,25 +93,23 @@
             <option value="Arial">Arial</option>
             <option value="Courier New">Courier</option>
         </select>
-
         <select onchange="changeFontSize(this.value)">
             <option value="10pt">10</option><option value="11pt">11</option>
             <option value="12pt" selected>12</option><option value="14pt">14</option>
             <option value="16pt">16</option>
         </select>
-
         <div class="divider"></div>
         <button onclick="document.execCommand('bold')">B</button>
         <button onclick="document.execCommand('italic')">I</button>
         <button onclick="document.execCommand('underline')">U</button>
-        <button onclick="document.execCommand('hiliteColor', false, 'yellow')" title="Marcar Amarelo">🖍️</button>
-        <button onclick="document.execCommand('hiliteColor', false, 'transparent')" title="Remover Marcação">🧼</button>
-
+        <button onclick="document.execCommand('hiliteColor', false, 'yellow')" title="Marcar">🖍️</button>
+        <button onclick="document.execCommand('hiliteColor', false, 'transparent')" title="Limpar">🧼</button>
+        
         <div class="divider"></div>
-        <button onclick="document.execCommand('justifyLeft')">⬅</button>
-        <button onclick="document.execCommand('justifyCenter')">⬆</button>
-        <button onclick="document.execCommand('justifyRight')">➡</button>
-        <button onclick="document.execCommand('justifyFull')">≡</button>
+        <button onclick="document.execCommand('justifyLeft')" title="Esquerda">⬅</button>
+        <button onclick="document.execCommand('justifyCenter')" title="Centralizar">⬆</button>
+        <button onclick="document.execCommand('justifyRight')" title="Direita">➡</button>
+        <button onclick="document.execCommand('justifyFull')" title="Justificado">≡</button>
 
         <div class="divider"></div>
         <button onclick="insertDate()">Data</button>
@@ -120,24 +124,47 @@
     <div id="editor" contenteditable="true" oninput="updateCurrentData()"></div>
 
     <div class="delete-footer no-print">
-        <button class="btn-trash" onclick="deleteImovel()" title="Excluir este imóvel permanentemente">&#128465;</button>
+        <button class="btn-trash" onclick="deleteImovel()" title="Excluir">&#128465;</button>
     </div>
 </div>
 
 <script>
     let imoveis = [{ nome: 'Imóvel 1', pref: '', iptu: '', mat: '', contrato: '' }];
     let activeIndex = 0;
+    let dragSrcIndex = null;
 
     function renderTabs() {
         const container = document.getElementById('tab-list');
         container.innerHTML = '';
+        
         imoveis.forEach((imovel, index) => {
-            const btn = document.createElement('button');
-            btn.className = `tab ${index === activeIndex ? 'active' : ''}`;
-            btn.innerText = imovel.nome || `Imóvel ${index + 1}`;
-            btn.onclick = () => switchTab(index);
-            container.appendChild(btn);
+            const tab = document.createElement('div');
+            tab.className = `tab ${index === activeIndex ? 'active' : ''}`;
+            tab.innerText = imovel.nome || `Imóvel ${index + 1}`;
+            tab.draggable = true;
+            tab.dataset.index = index;
+
+            tab.onclick = () => switchTab(index);
+            tab.ondragstart = (e) => {
+                dragSrcIndex = index;
+                e.target.classList.add('dragging');
+            };
+            tab.ondragover = (e) => e.preventDefault();
+            tab.ondrop = (e) => {
+                const targetIndex = parseInt(tab.dataset.index);
+                if (dragSrcIndex !== targetIndex) {
+                    const item = imoveis.splice(dragSrcIndex, 1)[0];
+                    imoveis.splice(targetIndex, 0, item);
+                    activeIndex = targetIndex;
+                    saveToStorage();
+                    renderTabs();
+                    loadCurrentData();
+                }
+            };
+            tab.ondragend = (e) => e.target.classList.remove('dragging');
+            container.appendChild(tab);
         });
+
         const addBtn = document.createElement('button');
         addBtn.className = 'btn-add-tab';
         addBtn.innerText = '+';
@@ -160,11 +187,8 @@
     }
 
     function deleteImovel() {
-        if (imoveis.length === 1) {
-            alert("Você não pode excluir o último imóvel da lista.");
-            return;
-        }
-        if (confirm(`Excluir permanentemente o imóvel "${imoveis[activeIndex].nome}"?`)) {
+        if (imoveis.length === 1) return alert("Não é possível excluir o último imóvel.");
+        if (confirm(`Excluir o imóvel "${imoveis[activeIndex].nome}"?`)) {
             imoveis.splice(activeIndex, 1);
             activeIndex = 0;
             loadCurrentData();
@@ -203,45 +227,33 @@
         loadCurrentData();
     };
 
-    function clearAll() {
-        if(confirm("Limpar texto deste contrato?")) {
-            document.getElementById('editor').innerHTML = '';
-            updateCurrentData();
-        }
-    }
-
     function copyToClipboard() {
         const editor = document.getElementById('editor');
         const range = document.createRange();
         range.selectNode(editor);
         window.getSelection().removeAllRanges();
         window.getSelection().addRange(range);
-        try {
-            document.execCommand('copy');
-            alert("Contrato copiado com sucesso!");
-        } catch (err) {
-            alert("Erro ao copiar.");
-        }
+        document.execCommand('copy');
+        alert("Contrato copiado!");
         window.getSelection().removeAllRanges();
     }
 
     function exportBackup() {
-        const now = new Date();
-        const ano = now.getFullYear();
-        const dataF = String(now.getDate()).padStart(2, '0') + "-" + String(now.getMonth() + 1).padStart(2, '0') + "-" + ano;
-        const horaF = String(now.getHours()).padStart(2, '0') + "h" + String(now.getMinutes()).padStart(2, '0');
+        const agora = new Date();
+        const ano = agora.getFullYear();
+        const dataF = String(agora.getDate()).padStart(2, '0') + "-" + String(agora.getMonth() + 1).padStart(2, '0') + "-" + ano;
+        const horaF = String(agora.getHours()).padStart(2, '0') + "h" + String(agora.getMinutes()).padStart(2, '0');
         const nomeArquivo = `backup_contratos_aluguel_${ano}_${dataF}_${horaF}.json`;
         const blob = new Blob([JSON.stringify(imoveis)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = url; a.download = nomeArquivo; a.click();
+        a.href = URL.createObjectURL(blob); a.download = nomeArquivo; a.click();
     }
 
     function importBackup(event) {
         const file = event.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = (e) => {
             imoveis = JSON.parse(e.target.result);
             activeIndex = 0;
             saveToStorage();
@@ -267,6 +279,13 @@
         const dataF = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
         document.execCommand('insertText', false, "São Paulo, " + dataF);
         updateCurrentData();
+    }
+
+    function clearAll() {
+        if(confirm("Limpar o texto?")) {
+            document.getElementById('editor').innerHTML = '';
+            updateCurrentData();
+        }
     }
 </script>
 

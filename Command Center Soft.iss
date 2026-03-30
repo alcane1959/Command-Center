@@ -39,6 +39,7 @@ Source: "C:\MeusProjetos\CommandCenter\{#MyAppExeName}"; DestDir: "{app}"; Flags
 Source: "C:\MeusProjetos\CommandCenter\CENTRO_DE_COMANDO.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\MeusProjetos\CommandCenter\FleetManager PRO.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\MeusProjetos\CommandCenter\Gestão de Aluguéis.html"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\MeusProjetos\CommandCenter\Gestão de Contratos.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\MeusProjetos\CommandCenter\Gestão Financeira Global.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\MeusProjetos\CommandCenter\Gestão Contas Bancárias.html"; DestDir: {app}; Flags: ignoreversion
 Source: "C:\MeusProjetos\CommandCenter\Gestão Cartões de Credito.html"; DestDir: {app}; Flags: ignoreversion
