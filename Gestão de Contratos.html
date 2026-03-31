@@ -38,23 +38,77 @@
 
         /* BARRA FIXA */
         .toolbar {
-            background: #f0f0f0; padding: 10px; border: 1px solid var(--border-color);
-            display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
-            position: sticky; top: 0; z-index: 1000;
-        }
-        .toolbar button { font-size: 1.1rem; }
-        .toolbar button, .toolbar select {
-            cursor: pointer; padding: 5px 8px; background: white; border: 1px solid #bbb; border-radius: 3px; font-size: 0.85rem;
-        }
+    background: #f0f0f0; 
+    padding: 10px; 
+    border: 1px solid var(--border-color);
+    display: flex; 
+    gap: 10px; 
+    flex-wrap: wrap; /* Permite a dobra */
+    justify-content: center; /* Centraliza os botões */
+    position: sticky; 
+    top: 0; 
+    z-index: 1000;
+    width: 210mm; /* Mesma largura do papel */
+    margin: 0 auto; 
+    box-sizing: border-box;
+}
 
         .divider { width: 1px; height: 20px; background: #ccc; margin: 0 5px; }
 
         /* EDITOR */
         #editor {
-            width: 100%; min-height: 800px; border: 1px solid var(--border-color); border-top: none;
-            padding: 50px; background: white; font-family: 'Times New Roman', serif; font-size: 12pt;
-            line-height: 1.5; box-sizing: border-box; outline: none; text-align: justify;
-        }
+    width: 210mm; /* Largura padrão A4 */
+    min-height: 297mm; /* Altura padrão A4 */
+    padding: 20mm; /* Margens internas do contrato */
+    margin: 10px auto; /* Centraliza a "folha" na tela */
+    border: 1px solid #ddd;
+    background: white;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12pt;
+    line-height: 1.5;
+    outline: none;
+    box-sizing: border-box;
+    text-align: justify;
+}
+
+.quebra-pagina {
+    page-break-after: always;
+    border-top: 2px dashed #2196F3; /* Linha tracejada azul */
+    margin: 40px 0;
+    position: relative;
+    height: 20px; /* Damos uma alturinha para ela aparecer */
+    cursor: default;
+    user-select: none;
+}
+
+/* Este código abaixo escreve "QUEBRA DE PÁGINA" em cima da linha */
+.quebra-pagina::before {
+    content: "--- QUEBRA DE PÁGINA (NÃO SAI NA IMPRESSÃO) ---";
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    color: #2196F3;
+    font-weight: bold;
+}
+
+@media print {
+    .quebra-pagina {
+        border: none !important;
+        height: 0 !important;
+        margin: 0 !important;
+    }
+    .quebra-pagina::before { content: ""; }
+}
+/* Garante que a linha azul não saia na impressora */
+@media print {
+    .quebra-pagina {
+        border: none !important;
+        margin: 0 !important;
+    }
+}
 
         /* LIXEIRA */
         .delete-footer { text-align: center; margin-top: 25px; margin-bottom: 15px; padding-top: 10px; border-top: 1px solid #eee;}
@@ -71,6 +125,25 @@
             #editor { border: none !important; padding: 0; }
             @page { margin: 2cm; }
         }
+
+/* Ajuste da Barra de Simulação para alinhar com o A4 */
+.simulador-container {
+    background: #eee; 
+    padding: 8px 20px; 
+    border: 1px solid #ccc; 
+    display: flex; 
+    gap: 10px; 
+    font-size: 13px; 
+    align-items: center; 
+    width: 210mm; /* Mesma largura da folha e da toolbar */
+    margin: 0 auto; /* Centraliza na tela */
+    box-sizing: border-box; /* Garante que o padding não aumente o tamanho */
+}
+
+/* Esconde a barra de simulação na hora de imprimir */
+@media print {
+    .simulador-container { display: none !important; }
+}
     </style>
 </head>
 <body>
@@ -89,57 +162,76 @@
 
     <div class="toolbar no-print">
         <select onchange="document.execCommand('fontName', false, this.value)">
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Arial">Arial</option>
             <option value="Courier New">Courier</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Arial">Arial</option>            
         </select>
         <select onchange="changeFontSize(this.value)">
             <option value="10pt">10</option><option value="11pt">11</option>
             <option value="12pt" selected>12</option><option value="14pt">14</option>
             <option value="16pt">16</option>
         </select>
-        <div class="divider"></div>
+
+        <div class="divider"></div>      
         <button onclick="document.execCommand('bold')">B</button>
         <button onclick="document.execCommand('italic')">I</button>
         <button onclick="document.execCommand('underline')">U</button>
+
+        <div class="divider"></div>
         <button onclick="document.execCommand('hiliteColor', false, 'yellow')" title="Marcar">🖍️</button>
         <button onclick="document.execCommand('hiliteColor', false, 'transparent')" title="Limpar">🧼</button>
+
+        <div class="divider"></div>
         <button onclick="document.execCommand('foreColor', false, 'red')" title="Texto Vermelho" style="color: red;">A</button>
         <button onclick="document.execCommand('foreColor', false, 'blue')" title="Texto Azul" style="color: blue;">A</button>
         <button onclick="document.execCommand('foreColor', false, 'black')" title="Texto Preto" style="color: black;">A</button>
         
-
+                    <div class="divider"></div>
         <button onclick="document.execCommand('justifyLeft')" title="Esquerda">⬅</button>
         <button onclick="document.execCommand('justifyCenter')" title="Centralizar">⬆</button>
         <button onclick="document.execCommand('justifyRight')" title="Direita">➡</button>
         <button onclick="document.execCommand('justifyFull')" title="Justificado">≡</button>
 
                     <div class="divider"></div>
+                    <div style="flex-basis: 100%; height: 0;"></div>
                     <button onclick="insertDate()" title="Inserir Data">📅</button>
+                    <div class="divider"></div>
                     <button onclick="clearAll()" title="Limpar Tudo">🗑️</button>
+                    <div class="divider"></div>
                     <button onclick="copyToClipboard()" title="Copiar Conteúdo">📋</button>
+                    <div class="divider"></div>
                     <button onclick="window.print()" title="Imprimir">🖨️</button>
+                    <div class="divider"></div>
                     <button onclick="exportBackup()" title="Fazer Backup">💾</button>
                     <button onclick="document.getElementById('fileInput').click()" title="Importar Backup">📂</button>
-                                                     <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Início da Página">🔝</button>
+                    <div class="divider"></div>
+                    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Início da Página">⬆️</button>
+                    <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="Fim da Página">⬇️</button>
+                    <button onclick="inserirQuebra()" title="Quebra de Página">✂️</button>
+       
                     <input type="file" id="fileInput" style="display:none" onchange="importBackup(event)">
     </div>
 
-<div class="no-print" style="background:#eee; padding:8px 8px 8px 20px; border:1px solid #ccc; display:flex; gap:10px; font-size:13px; align-items:center; margin-left: 0;">
+<div class="simulador-container no-print">
     <span>Simular:</span>
     <input type="date" id="s-data" value="" style="padding:2px; border:1px solid #bbb; border-radius:3px;">
     <span>+</span>
     <input type="number" id="s-mes" value="1" style="width:40px; padding:2px; border:1px solid #bbb; border-radius:3px;"> 
     <span>meses</span>
-    <button style="cursor:pointer; padding:5px 8px; background:white; border:1px solid #bbb; border-radius:3px; font-size:1.1rem;" onclick="let d=new Date(document.getElementById('s-data').value+'T12:00:00'); d.setMonth(d.getMonth()+parseInt(document.getElementById('s-mes').value)); document.getElementById('s-res').innerText=d.toLocaleDateString('pt-BR');" title="Calcular Data">🧮</button>
-    <span id="s-res" style="font-weight:; background:#fff; padding:2px 8px; border:1px solid #ccc; border-radius:3px;">---</span>
+    
+    <button style="cursor:pointer; padding:5px 8px; background:white; border:1px solid #bbb; border-radius:3px; font-size:1.1rem;" 
+            onclick="let d=new Date(document.getElementById('s-data').value+'T12:00:00'); d.setMonth(d.getMonth()+parseInt(document.getElementById('s-mes').value)); document.getElementById('s-res').innerText=d.toLocaleDateString('pt-BR');" 
+            title="Calcular Data">🧮</button>
+    
+    <span id="s-res" style="font-family: 'Courier New', Courier, monospace; font-weight:bold; background:#fff; padding:2px 8px; border:1px solid #ccc; border-radius:3px;">---</span>
+
+    <button onclick="deleteImovel()" title="Excluir Aba" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; margin-left: auto;">
+        ❌
+    </button>
 </div>
 
     <div id="editor" contenteditable="true" oninput="updateCurrentData()"></div>
 
-    <div class="delete-footer no-print">
-        <button class="btn-trash" onclick="deleteImovel()" title="Excluir">&#128465;</button>
-    </div>
 </div>
 
 <script>
@@ -201,15 +293,21 @@
     }
 
     function deleteImovel() {
-        if (imoveis.length === 1) return alert("Não é possível excluir o último imóvel.");
-        if (confirm(`Excluir o imóvel "${imoveis[activeIndex].nome}"?`)) {
-            imoveis.splice(activeIndex, 1);
-            activeIndex = 0;
-            loadCurrentData();
-            renderTabs();
-            saveToStorage();
+    if (imoveis.length === 1) return alert("Alberto, você precisa de pelo menos uma aba aberta!");
+    
+    if (confirm(`Tem certeza que deseja excluir a aba "${imoveis[activeIndex].nome}"?`)) {
+        imoveis.splice(activeIndex, 1);
+        
+        // Se apagou a última aba, volta para a anterior. Se não, mantém o índice.
+        if (activeIndex >= imoveis.length) {
+            activeIndex = imoveis.length - 1;
         }
+        
+        renderTabs();
+        loadCurrentData();
+        saveToStorage();
     }
+}
 
     function loadCurrentData() {
         const item = imoveis[activeIndex];
@@ -301,6 +399,72 @@
             updateCurrentData();
         }
     }
+
+
+	// Ajuste final: Mantém largura total, parágrafos, Negrito e Cores
+document.getElementById('editor').addEventListener('paste', function(e) {
+    e.preventDefault();
+    
+    let html = (e.originalEvent || e).clipboardData.getData('text/html');
+
+    if (html) {
+        let div = document.createElement('div');
+        div.innerHTML = html;
+
+        let todos = div.querySelectorAll('*');
+        todos.forEach(el => {
+            // REMOVE a "página colada" (bordas e sombras)
+            el.style.border = 'none';
+            el.style.boxShadow = 'none';
+            el.style.background = 'transparent';
+            
+            // FORÇA a largura total para não ficar estreito
+            el.style.width = '100%';
+            el.style.maxWidth = '100%';
+            el.style.boxSizing = 'border-box';
+
+            // TRATA OS PARÁGRAFOS (como o Item 1 e Item 2 do Word)
+            if (['P', 'DIV', 'LI'].includes(el.tagName)) {
+                el.style.display = 'block';
+                el.style.margin = '0 0 15px 0'; // Espaço de 15px entre os itens
+                el.style.padding = '0';
+            }
+        });
+
+        // Insere o conteúdo que agora respeita a largura da sua folha
+        document.execCommand('insertHTML', false, div.innerHTML);
+    } else {
+        const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+        document.execCommand('insertText', false, text);
+    }
+
+    // Garante a fonte Courier New e salva
+    document.execCommand('fontName', false, 'Courier New');
+    updateCurrentData();
+});
+
+
+
+
+function inserirQuebra() {
+    const div = document.createElement('div');
+    div.className = 'quebra-pagina';
+    div.contentEditable = false; 
+
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.insertNode(div);
+        // Cria um espaço depois da quebra para continuar digitando
+        const br = document.createElement('br');
+        div.after(br);
+
+        // Move o cursor para depois da quebra
+        range.setStartAfter(br);
+        range.setEndAfter(br);
+    }
+    updateCurrentData();
+}
 </script>
 
 </body>
