@@ -108,19 +108,20 @@
         <button onclick="document.execCommand('foreColor', false, 'blue')" title="Texto Azul" style="color: blue;">A</button>
         <button onclick="document.execCommand('foreColor', false, 'black')" title="Texto Preto" style="color: black;">A</button>
         
-        <div class="divider"></div>
+
         <button onclick="document.execCommand('justifyLeft')" title="Esquerda">⬅</button>
         <button onclick="document.execCommand('justifyCenter')" title="Centralizar">⬆</button>
         <button onclick="document.execCommand('justifyRight')" title="Direita">➡</button>
         <button onclick="document.execCommand('justifyFull')" title="Justificado">≡</button>
 
-        <div class="divider"></div>
+                    <div class="divider"></div>
                     <button onclick="insertDate()" title="Inserir Data">📅</button>
                     <button onclick="clearAll()" title="Limpar Tudo">🗑️</button>
                     <button onclick="copyToClipboard()" title="Copiar Conteúdo">📋</button>
                     <button onclick="window.print()" title="Imprimir">🖨️</button>
                     <button onclick="exportBackup()" title="Fazer Backup">💾</button>
                     <button onclick="document.getElementById('fileInput').click()" title="Importar Backup">📂</button>
+                                                     <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Início da Página">🔝</button>
                     <input type="file" id="fileInput" style="display:none" onchange="importBackup(event)">
     </div>
 
