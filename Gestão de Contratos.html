@@ -339,16 +339,33 @@
         loadCurrentData();
     };
 
-    function copyToClipboard() {
-        const editor = document.getElementById('editor');
+    async function copyToClipboard() {
+    const editor = document.getElementById('editor');
+    
+    try {
+        // Captura o HTML do editor para manter negritos, cores e fontes
+        const type = "text/html";
+        const blob = new Blob([editor.innerHTML], { type });
+        const data = [new ClipboardItem({ [type]: blob, ["text/plain"]: new Blob([editor.innerText], {type: "text/plain"}) })];
+        
+        await navigator.clipboard.write(data);
+        alert("Contrato copiado com formatação!");
+    } catch (err) {
+        // Caso o navegador bloqueie o método novo, tentamos o método clássico de seleção
         const range = document.createRange();
         range.selectNode(editor);
         window.getSelection().removeAllRanges();
         window.getSelection().addRange(range);
-        document.execCommand('copy');
-        alert("Contrato copiado!");
+        
+        try {
+            document.execCommand('copy');
+            alert("Contrato copiado!");
+        } catch (e) {
+            alert("Erro ao copiar. Por favor, selecione o texto e use Ctrl+C.");
+        }
         window.getSelection().removeAllRanges();
     }
+}
 
     function exportBackup() {
         const agora = new Date();
@@ -442,9 +459,6 @@ document.getElementById('editor').addEventListener('paste', function(e) {
     document.execCommand('fontName', false, 'Courier New');
     updateCurrentData();
 });
-
-
-
 
 function inserirQuebra() {
     const div = document.createElement('div');
