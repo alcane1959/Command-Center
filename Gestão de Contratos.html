@@ -34,10 +34,11 @@
         input { border: 1px solid var(--border-color); padding: 8px; border-radius: 3px; font-size: 0.9rem; }
 
         .toolbar {
-            background: #f0f0f0; padding: 10px; border: 1px solid var(--border-color);
-            display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; 
-            position: sticky; top: 0; z-index: 1000; width: 210mm; margin: 0 auto; box-sizing: border-box;
-        }
+    	background: #f0f0f0; padding: 10px; border: 1px solid var(--border-color);
+    	display: flex; gap: 10px; flex-wrap: wrap; 
+ 	justify-content: flex-start; /* Mude de center para flex-start */
+   	position: sticky; top: 0; z-index: 1000; width: 210mm; margin: 0 auto; box-sizing: border-box;
+       }
 
         .divider { width: 1px; height: 20px; background: #ccc; margin: 0 5px; }
 
@@ -59,8 +60,15 @@
             font-family: Arial, sans-serif; font-size: 10px; color: #2196F3; font-weight: bold;
         }
 
+        /* ESTILO DA BUSCA */
+        .busca-container {
+            background: #eef2ff; padding: 8px 20px; border: 1px solid #c7d2fe; 
+            display: flex; gap: 10px; font-size: 13px; align-items: center; 
+            width: 210mm; margin: 0 auto 5px auto; box-sizing: border-box;
+        }
+
         @media print {
-            .no-print, .toolbar, .tabs-container, .delete-footer, .simulador-container { display: none !important; }
+            .no-print, .toolbar, .tabs-container, .delete-footer, .simulador-container, .busca-container { display: none !important; }
             body { background: white; padding: 0; }
             .card { border: none; padding: 0; }
             #editor { border: none !important; padding: 0; }
@@ -104,19 +112,19 @@
 
         <select id="lineHeightSelect" onchange="changeLineHeight(this.value)" title="Espaçamento (Múltiplos de 0.15)">
             <option value="0.70">0</option>
-    <option value="0.80">0.10</option>
-    <option value="0.90">0.20</option>
-    <option value="1.00">0.30</option>
-    <option value="1.10">0.40</option>
-    <option value="1.20">0.50</option>
-    <option value="1.30">0.60</option>
-    <option value="1.40">0.70</option>
-    <option value="1.50">0.80</option>
-    <option value="1.60">0.90</option>
-    <option value="1.70">1.00</option>
-    <option value="1.80">1.10</option>
-    <option value="1.90">1.20</option>
-    <option value="2.00">1.30</option>
+            <option value="0.80">0.10</option>
+            <option value="0.90">0.20</option>
+            <option value="1.00">0.30</option>
+            <option value="1.10">0.40</option>
+            <option value="1.20">0.50</option>
+            <option value="1.30">0.60</option>
+            <option value="1.40">0.70</option>
+            <option value="1.50">0.80</option>
+            <option value="1.60">0.90</option>
+            <option value="1.70">1.00</option>
+            <option value="1.80">1.10</option>
+            <option value="1.90">1.20</option>
+            <option value="2.00">1.30</option>
         </select>
 
         <div class="divider"></div>      
@@ -141,19 +149,19 @@
 
         <div style="flex-basis: 100%; height: 0;"></div>
         <button onclick="insertDate()" title="Inserir Data">📅</button>
-        <div class="divider"></div>
         <button onclick="clearAll()" title="Limpar Tudo">🗑️</button>
-        <div class="divider"></div>
         <button onclick="copyToClipboard()" title="Copiar Conteúdo">📋</button>
-        <div class="divider"></div>
         <button onclick="window.print()" title="Imprimir">🖨️</button>
-        <div class="divider"></div>
         <button onclick="exportBackup()" title="Fazer Backup">💾</button>
         <button onclick="document.getElementById('fileInput').click()" title="Importar Backup">📂</button>
-        <div class="divider"></div>
         <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Início da Página">⬆️</button>
         <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" title="Fim da Página">⬇️</button>
         <button onclick="inserirQuebra()" title="Quebra de Página">✂️</button>
+
+	<div class="divider"></div>
+	<span style="font-size: 13px; margin-left: 5px;">🔍</span>
+	<input type="text" id="busca-texto" placeholder="Localizar..." style="width: 239px; padding: 4px; border: 1px solid #ccc; border-radius: 3px;">
+	<button onclick="buscarNoTexto()" style="cursor:pointer; padding: 4px 10px;" title="Procurar Próximo">Next</button>
        
         <input type="file" id="fileInput" style="display:none" onchange="importBackup(event)">
     </div>
@@ -324,7 +332,6 @@
 
             if (block && block.id !== 'editor') {
                 block.style.lineHeight = spacing;
-                // Forçamos a remoção de margens para garantir proporcionalidade no ajuste fino
                 block.style.margin = "0px 0px 5px 0px"; 
                 block.style.padding = "0px";
             } else {
@@ -380,6 +387,21 @@
         }
         updateCurrentData();
     }
+
+    // FUNÇÃO DE BUSCA CIRÚRGICA
+    function buscarNoTexto() {
+        const termo = document.getElementById('busca-texto').value;
+        if (!termo) return;
+        if (!window.find(termo, false, false, true, false, true, false)) {
+            window.getSelection().removeAllRanges();
+            if (!window.find(termo, false, false, true, false, true, false)) {
+                alert("Fim da busca ou palavra não encontrada.");
+            }
+        }
+    }
+    document.getElementById('busca-texto').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') buscarNoTexto();
+    });
 </script>
 </body>
 </html>
