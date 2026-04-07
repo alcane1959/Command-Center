@@ -147,6 +147,7 @@
             <td>
                 <button class="btn-demo-row" onclick="gerarDemonstrativo(this.closest('tr').rowIndex - 1)">Demonstrativo</button>
                 <button class="btn-demo-row" style="color: #8e44ad; border-color: #8e44ad;" onclick="gerarExtratoIndividual(this.closest('tr').rowIndex - 1)">Extrato Anual</button>
+                <button class="btn-demo-row" style="color: #27ae60; border-color: #27ae60;" onclick="gerarRecibo(this.closest('tr').rowIndex - 1)">Recibo</button>
                 <div class="row-controls">
                     <button class="btn-icon add" title="Adicionar Linha" onclick="addRow(this)">➕</button>
                     <button class="btn-icon save" title="Salvar" onclick="saveData(true)">✅</button>
@@ -419,7 +420,62 @@
         window.print();
     }
 
-    /* ALTERAÇÃO: ADICIONADO <strong> NO NOME DO INQUILINO */
+    function gerarRecibo(rowIdx) {
+        saveData(false);
+        const rows = document.querySelectorAll('#rent-rows tr');
+        if(!rows[rowIdx]) return;
+        const row = rows[rowIdx];
+        
+        const nome = row.querySelector('.in-name').value || "(Inquilino)";
+        const val = parseFloat(row.querySelector('.in-val').value) || 0;
+        const extra = parseFloat(row.querySelector('.in-extra').value) || 0;
+        const total = val + extra;
+        const locador = document.getElementById('locador-nome').value || '(Locador)';
+        
+        // MODIFICAÇÃO: Sempre pega a data exata do momento da geração do recibo
+        const dataF = new Date().toLocaleDateString('pt-BR');
+
+        const area = document.getElementById('print-area');
+        area.innerHTML = `
+        <style>
+            .recibo-wrapper { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #000; background: #fff; border: 2px solid #000; outline: none !important; }
+            .recibo-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 30px; }
+            .recibo-header h1 { margin: 0; text-transform: uppercase; font-size: 2rem; letter-spacing: 2px; }
+            .recibo-val { font-size: 1.5rem; font-weight: bold; background: #f2f2f2; padding: 10px 20px; border: 2px solid #000; border-radius: 5px;}
+            .recibo-body { font-size: 1.2rem; line-height: 1.8; text-align: justify; margin-bottom: 50px; }
+            .recibo-footer { text-align: right; font-size: 1.1rem; margin-bottom: 60px; }
+            .signature-block { margin-top: 50px; text-align: center; width: 400px; margin: 0 auto; }
+            .signature-line { border-top: 1.5px solid #000; margin-top: 8px; }
+            .signature-name { font-weight: bold; text-transform: uppercase; margin: 0; font-size: 1rem; }
+            @media print {
+                body * { visibility: hidden; }
+                #print-area, #print-area * { visibility: visible; }
+                #print-area { position: absolute; left: 0; top: 0; width: 100%; zoom: 80%; }
+                .recibo-wrapper { border: 2px solid #000 !important; margin-top: 20px; }
+            }
+        </style>
+        <div class="recibo-wrapper">
+            <div class="recibo-header">
+                <h1>Recibo</h1>
+                <div class="recibo-val">${total.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</div>
+            </div>
+            <div class="recibo-body">
+                Recebi(emos) de <strong>${nome.toUpperCase()}</strong>, a importância supra de <strong>${total.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</strong>, referente ao pagamento do aluguel e encargos do mês de <strong>${meses[currentMonthIdx]} / ${currentYear}</strong>.
+                <br><br>
+                Para maior clareza, firmo(amos) o presente recibo.
+            </div>
+            <div class="recibo-footer">
+                Taboão da Serra - SP, ${dataF}
+            </div>
+            <div class="signature-block">
+                <p class="signature-name">${locador}</p>
+                <div class="signature-line"></div>
+                <p style="font-size: 0.8rem; margin-top: 5px; color: #666;">Assinatura do Locador</p>
+            </div>
+        </div>`;
+        window.print();
+    }
+
     function prepareAndPrint(type) {
         saveData(false);
         const area = document.getElementById('print-area');
