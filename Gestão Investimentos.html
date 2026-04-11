@@ -8,24 +8,25 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; font-size: 12px; padding-bottom: 80px; zoom: 100%; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; font-size: 12px; padding-bottom: 40px; zoom: 100%; }
         .mono { font-family: 'JetBrains Mono', monospace; }
         .card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .invest-row { display: grid; grid-template-columns: 4px 160px 1fr 1fr 1fr 180px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #f1f5f9; gap: 10px; }
         input { border: 1px solid #cbd5e1 !important; border-radius: 4px !important; padding: 4px 8px !important; font-size: 11px !important; font-weight: 600 !important; background: #fff; width: 100%; }
-        .total-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; color: white; padding: 15px 0; z-index: 100; }
         .header-row { font-weight: 800; text-transform: uppercase; font-size: 9px; color: #64748b; padding: 5px 16px; }
+
+        /* Estilo para os resultados das linhas (Preto) */
+        .res-preto { color: #000000 !important; }
 
         @media print {
             @page { size: portrait; margin: 1cm; }
             body { background: white; padding-bottom: 0; zoom: 80%; }
-            .total-bar { position: relative; background: #0f172a !important; color: white !important; margin-top: 20px; border-radius: 8px; -webkit-print-color-adjust: exact; }
             .no-print, button, input[type="file"], .flex.gap-2.mb-4 { display: none !important; }
             .card { box-shadow: none; border: 1px solid #e2e8f0; }
             input { border: none !important; background: transparent !important; padding: 0 !important; }
             nav { border: 1px solid #e2e8f0; }
             #grand-total { color: #059669 !important; -webkit-print-color-adjust: exact; }
-            .bg-blue-600, .bg-blue-500, .bg-red-500, .bg-indigo-500, .bg-emerald-500, .bg-cyan-400, .bg-orange-400 {
+            .bg-blue-600, .bg-blue-500, .bg-red-500, .bg-indigo-500, .bg-emerald-500, .bg-cyan-400, .bg-orange-400, .bg-emerald-600, .bg-blue-800 {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -34,25 +35,39 @@
 </head>
 <body class="p-6">
 
-    <nav class="max-w-[1200px] mx-auto mb-6 flex justify-between items-center card p-4">
-        <div class="flex items-center gap-4">
-            <div class="bg-blue-600 text-white p-2 rounded shadow-md"><i class="fa-solid fa-chart-line"></i></div>
-            <div>
-                <h1 class="font-black text-slate-900 uppercase tracking-tight">Gestão de Patrimônio</h1>
-                <input type="text" id="nome-investidor" placeholder="Seu Nome" class="!border-none !p-0 !bg-transparent font-bold text-blue-600 focus:ring-0" oninput="salvarTudo()">
+    <nav class="max-w-[1200px] mx-auto mb-6 flex items-center justify-between card p-4 gap-2">
+        <div class="flex items-center gap-3 min-w-[200px]">
+            <div class="bg-blue-600 text-white p-2 rounded shadow-md shrink-0"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="overflow-hidden">
+                <h1 class="font-black text-slate-900 uppercase tracking-tight text-[9px] truncate">Gestão de Patrimônio</h1>
+                <input type="text" id="nome-investidor" placeholder="Seu Nome" class="!border-none !p-0 !bg-transparent font-bold text-blue-600 focus:ring-0 text-sm w-full" oninput="salvarTudo()">
             </div>
         </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right">
-                <div class="text-[9px] font-bold text-slate-400 uppercase">Status do Mercado</div>
-                <div id="status-text" class="flex items-center gap-2">
-                    <span id="status-dot" class="h-2 w-2 rounded-full bg-orange-500"></span>
-                    <span id="label-fonte" class="font-bold text-[10px]">Aguardando...</span>
-                </div>
+
+        <div class="text-center border-x border-slate-100 px-6 shrink-0">
+            <div class="text-[9px] font-bold text-slate-400 uppercase mb-1">Patrimônio Líquido Estimado</div>
+            <div id="grand-total" class="text-2xl font-black mono text-emerald-600 leading-none">R$ 0,00</div>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+            <div class="text-right px-2 border-r border-slate-100">
+                <div class="text-[8px] font-bold text-slate-400 uppercase whitespace-nowrap">Dólar</div>
+                <div id="top-usd" class="mono font-bold text-emerald-600 text-[10px] whitespace-nowrap">R$ 0,00</div>
             </div>
-            <div class="text-right border-l pl-6">
-                <div class="text-[9px] font-bold text-slate-400 uppercase">CDI Atual</div>
-                <div id="display-cdi" class="mono font-bold text-blue-600">---</div>
+            <div class="text-right px-2 border-r border-slate-100">
+                <div class="text-[8px] font-bold text-slate-400 uppercase whitespace-nowrap">Euro</div>
+                <div id="top-eur" class="mono font-bold text-blue-800 text-[10px] whitespace-nowrap">R$ 0,00</div>
+            </div>
+            <div class="text-right px-2 border-r border-slate-100">
+                <div class="text-[8px] font-bold text-slate-400 uppercase whitespace-nowrap">CDI</div>
+                <div id="display-cdi" class="mono font-bold text-blue-600 text-[10px] whitespace-nowrap">---</div>
+            </div>
+            <div class="text-right pl-1">
+                <div class="text-[8px] font-bold text-slate-400 uppercase whitespace-nowrap">Status do Mercado</div>
+                <div id="status-text" class="flex items-center justify-end gap-1">
+                    <span id="status-dot" class="h-2 w-2 rounded-full bg-orange-500 shrink-0"></span>
+                    <span id="label-fonte" class="font-bold text-[8px] uppercase tracking-tighter whitespace-nowrap">BANCO CENTRAL (...)</span>
+                </div>
             </div>
         </div>
     </nav>
@@ -68,7 +83,7 @@
 
         <div class="card overflow-hidden">
             <div class="invest-row header-row">
-                <div></div><div>Ativo</div><div>Valor Inicial</div><div>Data Início</div><div>Aporte Mensal</div><div class="text-right">Total Líquido</div>
+                <div></div><div>Ativo</div><div>Valor / Quantia</div><div>Data Início</div><div>Aporte Mensal</div><div class="text-right">Total Líquido (BRL)</div>
             </div>
             
             <div id="portfolio-list">
@@ -78,7 +93,7 @@
                     <input type="number" id="v-master" placeholder="R$" oninput="salvarTudo()">
                     <input type="date" id="d-master" oninput="salvarTudo()">
                     <input type="number" id="a-master" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-master" class="text-right font-black mono text-blue-600 text-sm">R$ 0,00</div>
+                    <div id="res-total-master" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
                 </div>
                 <div class="invest-row">
                     <div class="h-full bg-red-500"></div>
@@ -86,7 +101,7 @@
                     <input type="number" id="v-mapfre" placeholder="R$" oninput="salvarTudo()">
                     <input type="date" id="d-mapfre" oninput="salvarTudo()">
                     <input type="number" id="a-mapfre" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-mapfre" class="text-right font-black mono text-sm">R$ 0,00</div>
+                    <div id="res-total-mapfre" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
                 </div>
                 <div class="invest-row">
                     <div class="h-full bg-indigo-500"></div>
@@ -94,7 +109,7 @@
                     <input type="number" id="v-prev" placeholder="R$" oninput="salvarTudo()">
                     <input type="date" id="d-prev" oninput="salvarTudo()">
                     <input type="number" id="a-prev" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-prev" class="text-right font-black mono text-sm">R$ 0,00</div>
+                    <div id="res-total-prev" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
                 </div>
                 <div class="invest-row">
                     <div class="h-full bg-emerald-500"></div>
@@ -102,7 +117,7 @@
                     <input type="number" id="v-selic" placeholder="R$" oninput="salvarTudo()">
                     <input type="date" id="d-selic" oninput="salvarTudo()">
                     <input type="number" id="a-selic" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-selic" class="text-right font-black mono text-sm">R$ 0,00</div>
+                    <div id="res-total-selic" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
                 </div>
                 <div class="invest-row">
                     <div class="h-full bg-cyan-400"></div>
@@ -110,35 +125,48 @@
                     <input type="number" id="v-lci" placeholder="R$" oninput="salvarTudo()">
                     <input type="date" id="d-lci" oninput="salvarTudo()">
                     <input type="number" id="a-lci" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-lci" class="text-right font-black mono text-sm">R$ 0,00</div>
+                    <div id="res-total-lci" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
                 </div>
-                <div class="invest-row border-none">
+                <div class="invest-row">
                     <div class="h-full bg-orange-400"></div>
                     <div class="font-bold">Poupança</div>
                     <input type="number" id="v-poup" placeholder="R$" oninput="salvarTudo()">
                     <input type="date" id="d-poup" oninput="salvarTudo()">
                     <input type="number" id="a-poup" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-poup" class="text-right font-black mono text-sm">R$ 0,00</div>
+                    <div id="res-total-poup" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
+                </div>
+
+                <div class="invest-row">
+                    <div class="h-full bg-emerald-600"></div>
+                    <div class="font-bold">Dólar (USD) <span id="cot-usd" class="text-[9px] text-slate-400 mono block"></span></div>
+                    <input type="number" id="v-usd" placeholder="US$" oninput="salvarTudo()">
+                    <input type="date" id="d-usd" oninput="salvarTudo()">
+                    <input type="number" id="a-usd" placeholder="Aporte US$" oninput="salvarTudo()">
+                    <div id="res-total-usd" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
+                </div>
+                <div class="invest-row border-none">
+                    <div class="h-full bg-blue-800"></div>
+                    <div class="font-bold">Euro (EUR) <span id="cot-eur" class="text-[9px] text-slate-400 mono block"></span></div>
+                    <input type="number" id="v-eur" placeholder="€" oninput="salvarTudo()">
+                    <input type="date" id="d-eur" oninput="salvarTudo()">
+                    <input type="number" id="a-eur" placeholder="Aporte €" oninput="salvarTudo()">
+                    <div id="res-total-eur" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
                 </div>
             </div>
         </div>
     </main>
 
-    <div class="total-bar">
-        <div class="max-w-[1200px] mx-auto px-6 flex justify-between items-center">
-            <span class="text-[10px] font-bold uppercase text-slate-400">Patrimônio Líquido Estimado</span>
-            <span id="grand-total" class="text-2xl font-black mono text-emerald-400">R$ 0,00</span>
-        </div>
-    </div>
-
     <script>
         let globalCDI = 10.75; 
+        let taxaUSD = 0;
+        let taxaEUR = 0;
         let totais = {};
 
         async function buscarDadosPublicos() {
+            const display = document.getElementById('display-cdi');
             const dot = document.getElementById('status-dot');
             const label = document.getElementById('label-fonte');
-            const display = document.getElementById('display-cdi');
+            
             try {
                 const r = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados/ultimos/1?formato=json');
                 const d = await r.json();
@@ -146,15 +174,31 @@
                     let taxaDiaria = parseFloat(d[0].valor);
                     let taxaAnual = (Math.pow(1 + (taxaDiaria/100), 252) - 1) * 100;
                     globalCDI = taxaAnual - 0.10; 
-                    dot.className = "h-2 w-2 rounded-full bg-green-500";
-                    label.innerText = "BANCO CENTRAL (ONLINE)";
                     display.innerText = globalCDI.toFixed(2) + "%";
+                    dot.className = "h-2 w-2 rounded-full bg-green-500 shrink-0";
+                    label.innerText = "BANCO CENTRAL (ONLINE)";
                 }
             } catch (e) {
-                dot.className = "h-2 w-2 rounded-full bg-orange-500";
-                label.innerText = "ESTIMATIVA DE MERCADO";
                 display.innerText = globalCDI.toFixed(2) + "%";
+                dot.className = "h-2 w-2 rounded-full bg-orange-500 shrink-0";
+                label.innerText = "BANCO CENTRAL (OFFLINE)";
             }
+
+            try {
+                const rCambio = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL');
+                const dCambio = await rCambio.json();
+                taxaUSD = parseFloat(dCambio.USDBRL.bid);
+                taxaEUR = parseFloat(dCambio.EURBRL.bid);
+                
+                document.getElementById('top-usd').innerText = `R$ ${taxaUSD.toFixed(2)}`;
+                document.getElementById('top-eur').innerText = `R$ ${taxaEUR.toFixed(2)}`;
+                document.getElementById('cot-usd').innerText = `R$ ${taxaUSD.toFixed(2)}`;
+                document.getElementById('cot-eur').innerText = `R$ ${taxaEUR.toFixed(2)}`;
+            } catch (e) {
+                taxaUSD = 5.00;
+                taxaEUR = 5.40;
+            }
+
             processarTudo();
         }
 
@@ -166,6 +210,9 @@
             calcRF('selic', globalCDI + 0.1, 1.0);
             calcIsento('lci', globalCDI, 0.90); 
             calcPoup();
+            calcMoedaCompleta('usd', taxaUSD);
+            calcMoedaCompleta('eur', taxaEUR);
+
             const soma = Object.values(totais).reduce((a, b) => a + b, 0);
             document.getElementById('grand-total').innerText = soma.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         }
@@ -213,6 +260,20 @@
             atualizarDisplay('poup', principalFinal + aportesFinal);
         }
 
+        function calcMoedaCompleta(id, taxa) {
+            const v = parseFloat(document.getElementById(`v-${id}`).value) || 0;
+            const d = document.getElementById(`d-${id}`).value;
+            const a = parseFloat(document.getElementById(`a-${id}`).value) || 0;
+            if (v <= 0) { atualizarDisplay(id, 0); return; }
+            let totalMoeda = v;
+            if (d) {
+                const meses = Math.max(0, (new Date() - new Date(d)) / 2628000000);
+                totalMoeda += (a * meses);
+            }
+            const resBRL = totalMoeda * taxa;
+            atualizarDisplay(id, resBRL);
+        }
+
         function atualizarDisplay(id, valor) {
             totais[id] = valor;
             document.getElementById(`res-total-${id}`).innerText = valor.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
@@ -227,7 +288,9 @@
                 vp: f('v-prev'), dp: f('d-prev'), ap: f('a-prev'),
                 vs: f('v-selic'), ds: f('d-selic'), as: f('a-selic'),
                 vl: f('v-lci'), dl: f('d-lci'), al: f('a-lci'),
-                vpo: f('v-poup'), dpo: f('d-poup'), apo: f('a-poup')
+                vpo: f('v-poup'), dpo: f('d-poup'), apo: f('a-poup'),
+                v_usd: f('v-usd'), d_usd: f('d-usd'), a_usd: f('a-usd'),
+                v_eur: f('v-eur'), d_eur: f('d-eur'), a_eur: f('a-eur')
             };
             localStorage.setItem('terminal_vTOTAL_FINAL', JSON.stringify(data));
             processarTudo();
@@ -248,6 +311,8 @@
             L('v-selic', s.vs); L('d-selic', s.ds); L('a-selic', s.as);
             L('v-lci', s.vl); L('d-lci', s.dl); L('a-lci', s.al);
             L('v-poup', s.vpo); L('d-poup', s.dpo); L('a-poup', s.apo);
+            L('v-usd', s.v_usd); L('d-usd', s.d_usd); L('a-usd', s.a_usd);
+            L('v-eur', s.v_eur); L('d-eur', s.d_eur); L('a-eur', s.a_eur);
             processarTudo();
         }
 
@@ -258,7 +323,6 @@
             const dataFmt = agora.toLocaleDateString('pt-BR').replace(/\//g, '-');
             const horaFmt = agora.getHours() + 'h' + agora.getMinutes().toString().padStart(2, '0');
             const nomeArquivo = `backup_investimento_2026_${dataFmt}_${horaFmt}.json`;
-            
             const a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([data], {type: "application/json"}));
             a.download = nomeArquivo;
