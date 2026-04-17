@@ -68,9 +68,25 @@
         .btn-save { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: bold; margin-right: 8px; }
         .btn-insert { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; margin-right: 8px; }
         
+        /* Botões de Ordem */
+        .btn-move { background: #f1f5f9; border: 1px solid var(--border); color: var(--text-muted); padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; margin-right: 2px; }
+        .btn-move:hover { background: var(--accent); color: white; }
+
         .action-btn { background: #f1f5f9; color: var(--accent); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; }
         .copy-btn { background: white; border: 1px solid var(--border); color: var(--text-muted); padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 0.65rem; }
         .sync-icon { color: var(--accent); font-size: 0.7rem; margin-right: 5px; opacity: 0.5; }
+
+        /* AJUSTE EXTREMAMENTE PONTUAL PARA IMPRESSÃO */
+        @media print {
+            body { zoom: 80%; background: white !important; }
+            nav, .add-form, .copy-btn, .side-btn { display: none !important; }
+            /* Esconde a 1ª coluna (Ordem) e a 6ª coluna (Ações) */
+            th:nth-child(1), td:nth-child(1),
+            th:nth-child(6), td:nth-child(6) { display: none !important; }
+            main { padding: 0 !important; margin: 0 !important; width: 100% !important; overflow: visible !important; }
+            .table-container { border: none !important; box-shadow: none !important; }
+            th, td { border-bottom: 1px solid #ddd !important; }
+        }
     </style>
 </head>
 <body>
@@ -130,7 +146,7 @@
                     </div>
                     <div class="table-container">
                         <table>
-                            <thead><tr><th>${config.fields[0]}</th><th>${config.fields[1]}</th><th>${config.fields[2]}</th><th>${config.fields[3]}</th><th>Ações</th></tr></thead>
+                            <thead><tr><th style="width: 80px;">Ordem</th><th>${config.fields[0]}</th><th>${config.fields[1]}</th><th>${config.fields[2]}</th><th>${config.fields[3]}</th><th>Ações</th></tr></thead>
                             <tbody id="body-${cat}"></tbody>
                         </table>
                     </div>
@@ -154,6 +170,24 @@
             document.getElementById('tab-' + tab).classList.add('active');
         }
 
+        function mover(type, index, direcao) {
+            const novoIndex = index + direcao;
+            if (novoIndex >= 0 && novoIndex < data[type].length) {
+                const temp = data[type][index];
+                data[type][index] = data[type][novoIndex];
+                data[type][novoIndex] = temp;
+                
+                // Sincronização de ordem para Imóveis e Matrículas
+                if (type === 'imoveis' || type === 'matriculas') {
+                    const other = (type === 'imoveis') ? 'matriculas' : 'imoveis';
+                    const tempOther = data[other][index];
+                    data[other][index] = data[other][novoIndex];
+                    data[other][novoIndex] = tempOther;
+                }
+                render();
+            }
+        }
+
         function render() {
             Object.keys(categoryConfig).forEach(cat => renderTable(cat));
             localStorage.setItem('asset_pro_master_data', JSON.stringify(data));
@@ -168,6 +202,7 @@
                 const isSync = (type === 'imoveis' || type === 'matriculas');
                 if (editIdx.type === type && editIdx.index === index) {
                     body.innerHTML += `<tr>
+                        <td></td>
                         <td><input type="text" id="edit-f1" value="${item.nome}"></td>
                         <td><input type="text" id="edit-f2" value="${item.cidade}"></td>
                         <td><input type="text" id="edit-f3" value="${item.insc}" ${type === 'telefone' ? 'oninput="maskTel(this)" maxlength="15"' : ''}></td>
@@ -176,6 +211,10 @@
                     </tr>`;
                 } else {
                     body.innerHTML += `<tr>
+                        <td>
+                            <button class="btn-move" onclick="mover('${type}', ${index}, -1)">↑</button>
+                            <button class="btn-move" onclick="mover('${type}', ${index}, 1)">↓</button>
+                        </td>
                         <td>${isSync ? '<span class="sync-icon">🔄</span>' : ''}<strong>${item.nome || ''}</strong></td>
                         <td>${item.cidade || ''}</td>
                         <td><code>${item.insc || ''}</code> <button class="copy-btn" onclick="copiar('${item.insc}', this)">Copiar</button></td>

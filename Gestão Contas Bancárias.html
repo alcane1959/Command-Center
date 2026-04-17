@@ -54,6 +54,10 @@
         .btn-save { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: bold; margin-right: 8px; }
         .btn-insert { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; margin-right: 8px; font-weight: 500; }
         
+        /* Estilo para os botões de mover */
+        .btn-move { background: #f1f5f9; border: 1px solid var(--border); color: var(--text-muted); padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .btn-move:hover { background: var(--accent); color: white; }
+
         .action-link { background: #ecfeff; color: var(--accent); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; display: inline-block; }
         .action-link:hover { background: #cffafe; }
         
@@ -88,7 +92,7 @@
             #print-header p { margin: 5px 0 0; font-size: 14px; color: #64748b; font-weight: 600; }
             
             main { overflow: visible !important; padding: 0 !important; }
-            .top-header, .add-form, .action-bar, .btn-del, .btn-edit, .btn-insert, .copy-btn, .no-print { display: none !important; }
+            .top-header, .add-form, .action-bar, .btn-del, .btn-edit, .btn-insert, .copy-btn, .no-print, .btn-move { display: none !important; }
             .table-container { border: 1px solid #e2e8f0 !important; box-shadow: none !important; }
             td, th { border-bottom: 1px solid #e2e8f0 !important; }
         }
@@ -142,6 +146,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th class="no-print" style="width: 80px;">Ordem</th>
                             <th>Instituição</th>
                             <th>Tipo</th>
                             <th>Dados Bancários</th>
@@ -168,6 +173,16 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
+        function mover(index, direcao) {
+            const novoIndex = index + direcao;
+            if (novoIndex >= 0 && novoIndex < data.bancos.length) {
+                const temp = data.bancos[index];
+                data.bancos[index] = data.bancos[novoIndex];
+                data.bancos[novoIndex] = temp;
+                render();
+            }
+        }
+
         function render() {
             const body = document.getElementById(`body-bancos`);
             if (!body) return;
@@ -181,6 +196,7 @@
                 
                 if (editIdx.index === index) {
                     body.innerHTML += `<tr>
+                        <td class="no-print"></td>
                         <td><input type="text" id="edit-f1" value="${item.nome}"></td>
                         <td>
                             <select id="edit-f2">
@@ -199,6 +215,10 @@
                     </tr>`;
                 } else {
                     body.innerHTML += `<tr>
+                        <td class="no-print">
+                            <button class="btn-move" onclick="mover(${index}, -1)">↑</button>
+                            <button class="btn-move" onclick="mover(${index}, 1)">↓</button>
+                        </td>
                         <td><strong>${item.nome || ''}</strong></td>
                         <td><span class="badge ${badgeClass}">${item.tipo || 'Corrente'}</span></td>
                         <td><code>${item.dados || '-'}</code> <button class="copy-btn" onclick="copiar('${item.dados}', this)">Copiar</button></td>

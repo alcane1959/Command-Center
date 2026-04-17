@@ -54,6 +54,10 @@
         .btn-save { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; font-weight: bold; margin-right: 8px; }
         .btn-insert { color: var(--success); background: none; border: none; cursor: pointer; font-size: 0.75rem; margin-right: 8px; font-weight: 500; }
         
+        /* Estilo para os botões de mover */
+        .btn-move { background: #f1f5f9; border: 1px solid var(--border); color: var(--text-muted); padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .btn-move:hover { background: var(--accent); color: white; }
+
         .action-link { background: #f1f5f9; color: var(--accent); text-decoration: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; display: inline-block; }
         .action-link:hover { background: #e2e8f0; }
         
@@ -83,7 +87,7 @@
             #print-header p { margin: 5px 0 0; font-size: 14px; color: #64748b; font-weight: 600; }
             
             main { overflow: visible !important; padding: 0 !important; }
-            .top-header, .add-form, .action-bar, .btn-del, .btn-edit, .btn-insert, .copy-btn, .no-print { display: none !important; }
+            .top-header, .add-form, .action-bar, .btn-del, .btn-edit, .btn-insert, .copy-btn, .no-print, .btn-move { display: none !important; }
             .table-container { border: 1px solid #e2e8f0 !important; box-shadow: none !important; }
             td, th { border-bottom: 1px solid #e2e8f0 !important; }
         }
@@ -132,6 +136,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th class="no-print" style="width: 80px;">Ordem</th>
                             <th>Cartão</th>
                             <th>Banco</th>
                             <th style="text-align: left; padding-left: 25px;">Número</th>
@@ -158,6 +163,16 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
+        function mover(index, direcao) {
+            const novoIndex = index + direcao;
+            if (novoIndex >= 0 && novoIndex < data.cartao.length) {
+                const temp = data.cartao[index];
+                data.cartao[index] = data.cartao[novoIndex];
+                data.cartao[novoIndex] = temp;
+                render();
+            }
+        }
+
         function render() {
             const body = document.getElementById(`body-cartao`);
             if (!body) return;
@@ -169,6 +184,7 @@
             data.cartao.forEach((item, index) => {
                 if (editIdx.index === index) {
                     body.innerHTML += `<tr>
+                        <td class="no-print"></td>
                         <td><input type="text" id="edit-f1" value="${item.nome}"></td>
                         <td><input type="text" id="edit-f2" value="${item.cidade}"></td>
                         <td><input type="text" id="edit-f3" value="${item.insc}"></td>
@@ -180,6 +196,10 @@
                     </tr>`;
                 } else {
                     body.innerHTML += `<tr>
+                        <td class="no-print">
+                            <button class="btn-move" onclick="mover(${index}, -1)">↑</button>
+                            <button class="btn-move" onclick="mover(${index}, 1)">↓</button>
+                        </td>
                         <td><strong>${item.nome || ''}</strong></td>
                         <td>${item.cidade || ''}</td>
                         <td><code>${item.insc || '****'}</code> <button class="copy-btn" onclick="copiar('${item.insc}', this)">Copiar</button></td>

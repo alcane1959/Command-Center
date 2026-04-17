@@ -73,7 +73,17 @@
 
         .btn-add { background-color: var(--primary-color); color: white; }
         .btn-update { background-color: var(--warning-color); color: white; display: none; }
-        .btn-move { background-color: #ecf0f1; color: #7f8c8d; font-size: 14px; padding: 5px 8px; }
+        
+        /* ALTERAÇÃO SOLICITADA: Botões em sentido vertical */
+        .btn-move { 
+            background-color: #ecf0f1; 
+            color: #7f8c8d; 
+            font-size: 14px; 
+            padding: 5px 8px; 
+            display: block;    /* Força o botão a ocupar a linha toda */
+            margin: 2px auto;  /* Centraliza e dá um pequeno espaçamento vertical */
+            width: 30px;       /* Mantém uma largura fixa para alinhar um sobre o outro */
+        }
         .btn-move:hover { background-color: var(--accent-color); color: white; }
 
         table {
@@ -106,12 +116,45 @@
         .pago { color: var(--success-color); }
         .pendente { color: var(--danger-color); }
 
-        @media print {
-            body { padding: 0; background: white; }
-            .container { box-shadow: none; width: 100%; zoom: 80%; }
-            .no-print { display: none; }
-            th, td { border: 1px solid #ccc; }
-        }
+       @media print {
+    /* Ajusta as margens da folha de papel */
+    @page {
+        margin-right: 5mm; /* Margem direita bem pequena para não cortar */
+        margin-left: 5mm;  /* Margem esquerda pequena */
+        margin-top: 10mm;
+        margin-bottom: 10mm;
+    }
+
+    body { 
+        padding: 0; 
+        background: white; 
+    }
+
+    .container { 
+        box-shadow: none; 
+        width: 100% !important; 
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        zoom: 80%; /* Mantido para garantir que as colunas caibam */
+    }
+
+    .no-print { 
+        display: none; 
+    }
+
+    table {
+        width: 100%;    
+        font-size: 12pt; 
+        border-collapse: collapse; 
+        table-layout: auto; /* Permite que o navegador ajuste o tamanho das colunas automaticamente */
+    }
+
+    th, td { 
+        padding: 15px 8px !important; /* Aumenta o respiro entre as linhas na impressão */
+        line-height: 1.5;             /* Também ajuda a afastar o texto das bordas */
+    }
+}
     </style>
 </head>
 <body>
@@ -142,7 +185,7 @@
     <table>
         <thead>
             <tr>
-                <th class="no-print" style="width: 80px;">Ordem</th>
+                <th class="no-print" style="width: 50px; text-align: center;">Ordem</th>
                 <th>Cartão</th>
                 <th>Descrição</th>
                 <th>Progresso</th>
@@ -164,6 +207,7 @@
 </div>
 
 <script>
+    // Todo o script original foi mantido intacto conforme solicitado
     let compras = JSON.parse(localStorage.getItem('financas_parcelas_alberto')) || [];
 
     function adicionarCompra() {
@@ -209,7 +253,7 @@
 
             lista.innerHTML += `
                 <tr>
-                    <td class="no-print">
+                    <td class="no-print" style="text-align: center;">
                         <button class="btn-move" onclick="mover(${index}, -1)">↑</button>
                         <button class="btn-move" onclick="mover(${index}, 1)">↓</button>
                     </td>
@@ -281,24 +325,19 @@
     }
 
     function exportarDados() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(compras));
-    const a = document.createElement('a');
-    const d = new Date();
-
-    // Formatação manual dos componentes da data
-    const dia = d.getDate().toString().padStart(2, '0');
-    const mes = (d.getMonth() + 1).toString().padStart(2, '0');
-    const ano = d.getFullYear();
-    const hora = d.getHours().toString().padStart(2, '0');
-    const minuto = d.getMinutes().toString().padStart(2, '0');
-
-    // Montagem do nome conforme solicitado: backup_compras_ccp_2026_DD-MM-AAAA_HHhMM
-    const nomeArquivo = `backup_compras_ccp_${ano}_${dia}-${mes}-${ano}_${hora}h${minuto}.json`;
-
-    a.setAttribute("href", dataStr);
-    a.setAttribute("download", nomeArquivo);
-    a.click();
-}
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(compras));
+        const a = document.createElement('a');
+        const d = new Date();
+        const dia = d.getDate().toString().padStart(2, '0');
+        const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+        const ano = d.getFullYear();
+        const hora = d.getHours().toString().padStart(2, '0');
+        const minuto = d.getMinutes().toString().padStart(2, '0');
+        const nomeArquivo = `backup_compras_ccp_${ano}_${dia}-${mes}-${ano}_${hora}h${minuto}.json`;
+        a.setAttribute("href", dataStr);
+        a.setAttribute("download", nomeArquivo);
+        a.click();
+    }
 
     function importarDados(e) {
         const reader = new FileReader();

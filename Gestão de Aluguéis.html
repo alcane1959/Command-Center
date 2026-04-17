@@ -44,6 +44,21 @@
         .btn-demo-row { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 5px 0; border-radius: 4px; cursor: pointer; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; width: 100%; margin-bottom: 6px; transition: all 0.2s; }
         .btn-demo-row:hover { background: var(--accent); color: white; }
 
+        /* ESTILO DAS SETAS VERTICAIS */
+        .btn-move { 
+            background: #ecf0f1; 
+            color: #7f8c8d; 
+            padding: 1px 0; 
+            display: block; 
+            margin: 2px auto; 
+            width: 30px; 
+            font-size: 18px; 
+            border: 0px solid #ccc; 
+            cursor: pointer; 
+            border-radius: 5px;
+        }
+        .btn-move:hover { background: var(--accent); color: white; }
+
         .row-controls { display: flex; gap: 6px; justify-content: center; align-items: center; }
         .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
         .btn-icon.save { color: var(--success); }
@@ -99,7 +114,8 @@
         <table id="main-table">
             <thead>
                 <tr>
-                    <th style="width: 20%;">Inquilino</th>
+                    <th style="width: 35px; text-align: center;">Ordem</th>
+                    <th style="width: 18%;">Inquilino</th>
                     <th style="width: 12%;">Data Pagto</th>
                     <th style="width: 8%;">Reajuste</th>
                     <th style="width: 10%;">CDC IPTU</th>
@@ -117,6 +133,7 @@
 </div>
 
 <script>
+    // Código original mantido integralmente
     const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     let currentYear = localStorage.getItem('selected_year') || new Date().getFullYear();
     let currentMonthIdx = 0;
@@ -136,6 +153,10 @@
 
     function createRowHTML() {
         return `
+            <td class="no-print" style="text-align: center; vertical-align: middle;">
+                <button class="btn-move" onclick="mover(this, -1)">↑</button>
+                <button class="btn-move" onclick="mover(this, 1)">↓</button>
+            </td>
             <td><input type="text" class="in-name" oninput="saveData(false)"></td>
             <td><input type="date" class="in-date" oninput="saveData(false)"></td>
             <td><input type="text" class="in-reajuste" placeholder="Ex: Mar" oninput="saveData(false)"></td>
@@ -154,6 +175,26 @@
                     <button class="btn-icon del" title="Excluir" onclick="deleteRow(this)">🗑️</button>
                 </div>
             </td>`;
+    }
+
+    // NOVA FUNÇÃO: Mover posição
+    function mover(btn, direcao) {
+        saveData(false);
+        const row = btn.closest('tr');
+        const index = row.rowIndex - 1;
+        const saved = localStorage.getItem(`data_${currentYear}_mes_${currentMonthIdx}`);
+        if(!saved) return;
+        
+        let data = JSON.parse(saved);
+        const novoIndex = index + direcao;
+        
+        if (novoIndex >= 0 && novoIndex < data.length) {
+            const temp = data[index];
+            data[index] = data[novoIndex];
+            data[novoIndex] = temp;
+            localStorage.setItem(`data_${currentYear}_mes_${currentMonthIdx}`, JSON.stringify(data));
+            loadMonthData(currentMonthIdx);
+        }
     }
 
     function addRow(btn = null) {
@@ -213,6 +254,7 @@
         if(tbody.children.length === 0) for(let i=0; i < 5; i++) addRow();
     }
 
+    // Mantido demais funções originais
     function switchMonth(idx) { saveData(false); currentMonthIdx = idx; document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active')); document.getElementById(`tab-${idx}`).classList.add('active'); document.getElementById('current-month-display').innerText = meses[idx]; loadMonthData(idx); }
     function changeYear() { saveData(false); currentYear = document.getElementById('current-year-select').value; localStorage.setItem('selected_year', currentYear); loadMonthData(currentMonthIdx); updateAnnualTotal(); }
     function saveLocador() { localStorage.setItem('locador_nome', document.getElementById('locador-nome').value); }
@@ -431,8 +473,6 @@
         const extra = parseFloat(row.querySelector('.in-extra').value) || 0;
         const total = val + extra;
         const locador = document.getElementById('locador-nome').value || '(Locador)';
-        
-        // MODIFICAÇÃO: Sempre pega a data exata do momento da geração do recibo
         const dataF = new Date().toLocaleDateString('pt-BR');
 
         const area = document.getElementById('print-area');
