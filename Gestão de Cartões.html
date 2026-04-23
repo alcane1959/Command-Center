@@ -44,7 +44,7 @@
 
         .form-panel {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             background: #f1f3f5;
             padding: 20px;
@@ -74,17 +74,24 @@
         .btn-add { background-color: var(--primary-color); color: white; }
         .btn-update { background-color: var(--warning-color); color: white; display: none; }
         
-        /* ALTERAÇÃO SOLICITADA: Botões em sentido vertical */
         .btn-move { 
             background-color: #ecf0f1; 
             color: #7f8c8d; 
             font-size: 14px; 
             padding: 5px 8px; 
-            display: block;    /* Força o botão a ocupar a linha toda */
-            margin: 2px auto;  /* Centraliza e dá um pequeno espaçamento vertical */
-            width: 30px;       /* Mantém uma largura fixa para alinhar um sobre o outro */
+            display: block;
+            margin: 2px auto;
+            width: 30px;
         }
         .btn-move:hover { background-color: var(--accent-color); color: white; }
+
+        /* Ajuste pontual para os botões de ação na tabela */
+        .btn-action {
+            padding: 5px 10px;
+            font-size: 14px;
+            margin: 0 2px;
+            min-width: 35px;
+        }
 
         table {
             width: 100%;
@@ -117,44 +124,13 @@
         .pendente { color: var(--danger-color); }
 
        @media print {
-    /* Ajusta as margens da folha de papel */
-    @page {
-        margin-right: 5mm; /* Margem direita bem pequena para não cortar */
-        margin-left: 5mm;  /* Margem esquerda pequena */
-        margin-top: 10mm;
-        margin-bottom: 10mm;
-    }
-
-    body { 
-        padding: 0; 
-        background: white; 
-    }
-
-    .container { 
-        box-shadow: none; 
-        width: 100% !important; 
-        max-width: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        zoom: 80%; /* Mantido para garantir que as colunas caibam */
-    }
-
-    .no-print { 
-        display: none; 
-    }
-
-    table {
-        width: 100%;    
-        font-size: 12pt; 
-        border-collapse: collapse; 
-        table-layout: auto; /* Permite que o navegador ajuste o tamanho das colunas automaticamente */
-    }
-
-    th, td { 
-        padding: 15px 8px !important; /* Aumenta o respiro entre as linhas na impressão */
-        line-height: 1.5;             /* Também ajuda a afastar o texto das bordas */
-    }
-}
+            @page { margin: 10mm 5mm; }
+            body { padding: 0; background: white; }
+            .container { box-shadow: none; width: 100% !important; margin: 0 !important; padding: 0 !important; zoom: 80%; }
+            .no-print { display: none; }
+            table { width: 100%; font-size: 12pt; border-collapse: collapse; }
+            th, td { padding: 15px 8px !important; line-height: 1.5; }
+        }
     </style>
 </head>
 <body>
@@ -169,7 +145,8 @@
             <input type="text" id="descricao" placeholder="O que comprou?">
             <input type="number" id="valorTotal" placeholder="Valor Total (R$)">
             <input type="number" id="parcelas" placeholder="Vezes (ex: 10)">
-            <input type="date" id="dataInicio" title="Data da 1ª Parcela">
+            <input type="date" id="dataInicio" title="Data da Compra">
+            <input type="number" id="diaVencimento" placeholder="Dia Venc. (15 ou 21)" min="1" max="31">
             <button class="btn-add" id="btnAdd" onclick="adicionarCompra()">Adicionar</button>
             <button class="btn-update" id="btnUpdate" onclick="salvarEdicao()">Salvar Alteração</button>
         </div>
@@ -207,7 +184,6 @@
 </div>
 
 <script>
-    // Todo o script original foi mantido intacto conforme solicitado
     let compras = JSON.parse(localStorage.getItem('financas_parcelas_alberto')) || [];
 
     function adicionarCompra() {
@@ -216,10 +192,11 @@
         const total = parseFloat(document.getElementById('valorTotal').value);
         const qtd = parseInt(document.getElementById('parcelas').value);
         const data = document.getElementById('dataInicio').value;
+        const venc = parseInt(document.getElementById('diaVencimento').value) || 15;
 
         if (!cartao || isNaN(total) || isNaN(qtd) || !data) return alert("Preencha todos os campos.");
 
-        compras.push({ id: Date.now(), cartao, desc, total, qtd, dataInicio: data });
+        compras.push({ id: Date.now(), cartao, desc, total, qtd, dataInicio: data, diaVenc: venc });
         limparFormulario();
         salvarERenderizar();
     }
@@ -238,18 +215,30 @@
         const lista = document.getElementById('listaCompras');
         lista.innerHTML = '';
         const hoje = new Date();
+        const hojeRef = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
         let somaDebitoTotal = 0;
 
         compras.forEach((c, index) => {
-            const dataInicio = new Date(c.dataInicio + 'T00:00:00');
+            const dt = new Date(c.dataInicio + 'T00:00:00');
+            const diaVenc = c.diaVenc || 15;
+            
+            let mesInicioEfetivo = dt.getMonth();
+            if (dt.getDate() > 10) {
+                mesInicioEfetivo += 1;
+            }
+            
+            const dataInicioRef = new Date(dt.getFullYear(), mesInicioEfetivo, 1);
             const valorUnit = c.total / c.qtd;
-            let meses = (hoje.getFullYear() - dataInicio.getFullYear()) * 12 + (hoje.getMonth() - dataInicio.getMonth());
-            let atual = Math.min(Math.max(meses + 1, 0), c.qtd);
+            
+            let diffMeses = (hojeRef.getFullYear() - dataInicioRef.getFullYear()) * 12 + (hojeRef.getMonth() - dataInicioRef.getMonth());
+            
+            let atual = Math.min(Math.max(diffMeses + 1, 0), c.qtd);
             const saldo = (c.qtd - atual) * valorUnit;
             somaDebitoTotal += saldo;
 
-            const dataFinal = new Date(dataInicio);
+            const dataFinal = new Date(dataInicioRef);
             dataFinal.setMonth(dataFinal.getMonth() + (c.qtd - 1));
+            const dataExibicaoFinal = new Date(dataFinal.getFullYear(), dataFinal.getMonth(), diaVenc);
 
             lista.innerHTML += `
                 <tr>
@@ -257,15 +246,15 @@
                         <button class="btn-move" onclick="mover(${index}, -1)">↑</button>
                         <button class="btn-move" onclick="mover(${index}, 1)">↓</button>
                     </td>
-                    <td class="negrito">${c.cartao}</td>
+                    <td class="negrito">${c.cartao} (Venc: ${diaVenc})</td>
                     <td>${c.desc}</td>
                     <td>${atual} de ${c.qtd} ${atual === c.qtd ? '✅' : ''}</td>
                     <td>${valorUnit.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
                     <td class="negrito ${saldo > 0 ? 'pendente' : 'pago'}">${saldo.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
-                    <td>${dataFinal.toLocaleDateString('pt-BR')}</td>
-                    <td class="no-print">
-                        <button style="background:var(--warning-color); color:white;" onclick="editarCompra(${c.id})">Editar</button>
-                        <button style="background:var(--danger-color); color:white;" onclick="removerCompra(${c.id})">Excluir</button>
+                    <td>${dataExibicaoFinal.toLocaleDateString('pt-BR')}</td>
+                    <td class="no-print" style="white-space: nowrap;">
+                        <button class="btn-action" style="background:var(--warning-color); color:white;" onclick="editarCompra(${c.id})" title="Editar">✎</button>
+                        <button class="btn-action" style="background:var(--danger-color); color:white;" onclick="removerCompra(${c.id})" title="Excluir">✖</button>
                     </td>
                 </tr>`;
         });
@@ -282,6 +271,7 @@
         document.getElementById('valorTotal').value = item.total;
         document.getElementById('parcelas').value = item.qtd;
         document.getElementById('dataInicio').value = item.dataInicio;
+        document.getElementById('diaVencimento').value = item.diaVenc || 15;
         document.getElementById('btnAdd').style.display = 'none';
         document.getElementById('btnUpdate').style.display = 'block';
         window.scrollTo(0, 0);
@@ -296,6 +286,7 @@
             compras[index].total = parseFloat(document.getElementById('valorTotal').value);
             compras[index].qtd = parseInt(document.getElementById('parcelas').value);
             compras[index].dataInicio = document.getElementById('dataInicio').value;
+            compras[index].diaVenc = parseInt(document.getElementById('diaVencimento').value);
         }
         limparFormulario();
         salvarERenderizar();
@@ -308,6 +299,7 @@
         document.getElementById('valorTotal').value = '';
         document.getElementById('parcelas').value = '';
         document.getElementById('dataInicio').value = '';
+        document.getElementById('diaVencimento').value = '';
         document.getElementById('btnAdd').style.display = 'block';
         document.getElementById('btnUpdate').style.display = 'none';
     }
