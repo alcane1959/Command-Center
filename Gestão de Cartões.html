@@ -325,7 +325,7 @@
         const ano = d.getFullYear();
         const hora = d.getHours().toString().padStart(2, '0');
         const minuto = d.getMinutes().toString().padStart(2, '0');
-        const nomeArquivo = `backup_compras_ccp_${ano}_${dia}-${mes}-${ano}_${hora}h${minuto}.json`;
+        const nomeArquivo = `Controle_de_Compras_Parceladas_${ano}_${dia}-${mes}-${ano}_${hora}h${minuto}.json`;
         a.setAttribute("href", dataStr);
         a.setAttribute("download", nomeArquivo);
         a.click();

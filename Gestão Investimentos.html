@@ -322,7 +322,7 @@
             const agora = new Date();
             const dataFmt = agora.toLocaleDateString('pt-BR').replace(/\//g, '-');
             const horaFmt = agora.getHours() + 'h' + agora.getMinutes().toString().padStart(2, '0');
-            const nomeArquivo = `backup_investimento_2026_${dataFmt}_${horaFmt}.json`;
+            const nomeArquivo = `Gestão_de_Investimentos_2026_${dataFmt}_${horaFmt}.json`;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([data], {type: "application/json"}));
             a.download = nomeArquivo;

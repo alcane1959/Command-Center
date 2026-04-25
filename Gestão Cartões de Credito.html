@@ -270,7 +270,7 @@
             const ano = agora.getFullYear();
             const hora = String(agora.getHours()).padStart(2, '0');
             const min = String(agora.getMinutes()).padStart(2, '0');
-            const nomeArquivo = `backup_cartoes_${ano}_${dia}-${mes}-${ano}_${hora}h${min}.json`;
+            const nomeArquivo = `Cartões_de_Crédito_${ano}_${dia}-${mes}-${ano}_${hora}h${min}.json`;
 
             const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
             const url = URL.createObjectURL(blob);

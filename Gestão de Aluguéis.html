@@ -303,7 +303,7 @@
         const horaStr = agora.getHours().toString().padStart(2, '0') + 'h' + agora.getMinutes().toString().padStart(2, '0');
         const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }); 
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
-        a.download = `backup_alugueis_${currentYear}_${dataStr}_${horaStr}.json`; 
+        a.download = `Gestão_de_Aluguéis_${currentYear}_${dataStr}_${horaStr}.json`; 
         a.click(); 
     }
 
