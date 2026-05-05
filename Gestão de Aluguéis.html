@@ -291,21 +291,41 @@
 
     function clearCurrentMonth() { if(confirm(`Limpar ${meses[currentMonthIdx]}?`)) { localStorage.removeItem(`data_${currentYear}_mes_${currentMonthIdx}`); loadMonthData(currentMonthIdx); updateAnnualTotal(); } }
     
-    function exportBackup() { 
-        saveData(false); 
-        let backup = {}; 
-        for (let i=0; i<localStorage.length; i++) { 
-            let k = localStorage.key(i); 
-            if (k.startsWith('data_') || k === 'locador_nome' || k === 'selected_year') backup[k] = localStorage.getItem(k); 
-        } 
-        const agora = new Date();
-        const dataStr = agora.toLocaleDateString('pt-BR').replace(/\//g, '-');
-        const horaStr = agora.getHours().toString().padStart(2, '0') + 'h' + agora.getMinutes().toString().padStart(2, '0');
-        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }); 
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
-        a.download = `Gestão_de_Aluguéis_${currentYear}_${dataStr}_${horaStr}.json`; 
-        a.click(); 
-    }
+function exportBackup() { 
+    // Removi o saveData(false) daqui para evitar múltiplos disparos de armazenamento no mesmo clique
+    
+    let backup = {}; 
+    for (let i = 0; i < localStorage.length; i++) { 
+        let k = localStorage.key(i); 
+        // Filtra apenas os dados relevantes para o backup
+        if (k.startsWith('data_') || k === 'locador_nome' || k === 'selected_year') {
+            backup[k] = localStorage.getItem(k); 
+        }
+    } 
+
+    const agora = new Date();
+    const dataStr = agora.toLocaleDateString('pt-BR').replace(/\//g, '-');
+    const horaStr = agora.getHours().toString().padStart(2, '0') + 'h' + agora.getMinutes().toString().padStart(2, '0');
+    
+    const json = JSON.stringify(backup, null, 2);
+    const blob = new Blob([json], { type: 'application/json' }); 
+    const url = URL.createObjectURL(blob);
+    
+    // Criando o elemento de forma mais robusta
+    const a = document.createElement('a'); 
+    a.href = url; 
+    a.download = `Gestão_de_Aluguéis_${currentYear}_${dataStr}_${horaStr}.json`; 
+    
+    // O segredo para não disparar o bloqueio:
+    document.body.appendChild(a); 
+    a.click(); 
+    
+    // Limpeza com um pequeno atraso para o navegador processar o download
+    setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }, 200);
+}
 
     function importBackup(ev) { 
         const file = ev.target.files[0]; if (!file) return; 
