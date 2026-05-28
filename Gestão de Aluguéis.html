@@ -393,7 +393,7 @@ function exportBackup() {
                 <thead><tr><th>Item / Descrição</th><th style="text-align: right;">Valor (R$)</th></tr></thead>
                 <tbody>
                     <tr><td>Aluguel Mensal de Imóvel</td><td style="text-align: right;">${val.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>
-                    <tr><td>Encargos / Extras / Descontos</td><td style="text-align: right;" class="${extra < 0 ? 'val-negativo' : ''}">${extra.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>
+                    <tr><td>Encargos / Extras / Descontos / Retenção IR</td><td style="text-align: right;" class="${extra < 0 ? 'val-negativo' : ''}">${extra.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td></tr>
                     <tr style="font-weight: bold; background: #eee !important;">
                         <td>TOTAL GERAL A RECEBER</td>
                         <td style="text-align: right;">${total.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}</td>
