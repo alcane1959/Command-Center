@@ -4,158 +4,250 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão de Investimentos</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; font-size: 12px; padding-bottom: 40px; zoom: 100%; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .invest-row { display: grid; grid-template-columns: 4px 160px 1fr 1fr 1fr 180px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #f1f5f9; gap: 10px; }
-        input { border: 1px solid #cbd5e1 !important; border-radius: 4px !important; padding: 4px 8px !important; font-size: 11px !important; font-weight: 600 !important; background: #fff; width: 100%; }
-        .header-row { font-weight: 800; text-transform: uppercase; font-size: 9px; color: #64748b; padding: 5px 16px; }
-
-        /* Estilo para os resultados das linhas (Preto) */
-        .res-preto { color: #000000 !important; }
-
-        @media print {
-            @page { size: portrait; margin: 1cm; }
-            body { background: white; padding-bottom: 0; zoom: 80%; }
-            .no-print, button, input[type="file"], .flex.gap-2.mb-4 { display: none !important; }
-            .card { box-shadow: none; border: 1px solid #e2e8f0; }
-            input { border: none !important; background: transparent !important; padding: 0 !important; }
-            nav { border: 1px solid #e2e8f0; }
-            #grand-total { color: #059669 !important; -webkit-print-color-adjust: exact; }
-            .bg-blue-600, .bg-blue-500, .bg-red-500, .bg-indigo-500, .bg-emerald-500, .bg-cyan-400, .bg-orange-400, .bg-emerald-600, .bg-blue-800 {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#035485',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
             }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Impressão */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; zoom: 100%; padding: 0 !important; }
+            main { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            header, nav { border: none !important; box-shadow: none !important; }
+            .card-container { border: none !important; box-shadow: none !important; }
+            th, td { border-bottom: 1px solid #e2e8f0 !important; }
+            input { border: none !important; background: transparent !important; padding: 0 !important; }
         }
     </style>
 </head>
-<body class="p-6">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
 
-    <nav class="max-w-[1200px] mx-auto mb-6 flex items-center justify-between card p-4 gap-2">
-        <div class="flex items-center gap-3 min-w-[200px]">
-            <div class="bg-blue-600 text-white p-2 rounded shadow-md shrink-0"><i class="fa-solid fa-chart-line"></i></div>
-            <div class="overflow-hidden">
-                <h1 class="font-black text-slate-900 uppercase tracking-tight text-[9px] truncate">Gestão de Patrimônio</h1>
-                <input type="text" id="nome-investidor" placeholder="Seu Nome" class="!border-none !p-0 !bg-transparent font-bold text-blue-600 focus:ring-0 text-sm w-full" oninput="salvarTudo()">
-            </div>
-        </div>
-
-        <div class="text-center border-x border-slate-100 px-6 shrink-0">
-            <div class="text-[9px] font-bold text-slate-400 uppercase mb-1">Patrimônio Líquido Estimado</div>
-            <div id="grand-total" class="text-2xl font-black mono text-emerald-600 leading-none">R$ 0,00</div>
-        </div>
-
-        <div class="flex items-center gap-3 shrink-0">
-            <div class="text-right px-2 border-r border-slate-100">
-                <div class="text-[8px] font-bold text-slate-400 uppercase whitespace-nowrap">Dólar</div>
-                <div id="top-usd" class="mono font-bold text-emerald-600 text-[10px] whitespace-nowrap">R$ 0,00</div>
-            </div>
-            <div class="text-right px-2 border-r border-slate-100">
-                <div class="text-[8px] font-bold text-slate-400 uppercase whitespace-nowrap">Euro</div>
-                <div id="top-eur" class="mono font-bold text-blue-800 text-[10px] whitespace-nowrap">R$ 0,00</div>
-            </div>
-            <div class="text-right px-2 border-r border-slate-100">
-                <div class="text-[8px] font-bold text-slate-400 uppercase whitespace-nowrap">CDI</div>
-                <div id="display-cdi" class="mono font-bold text-blue-600 text-[10px] whitespace-nowrap">---</div>
-            </div>
-            <div class="text-right pl-1">
-                <div class="text-[8px] font-bold text-slate-400 uppercase whitespace-nowrap">Status do Mercado</div>
-                <div id="status-text" class="flex items-center justify-end gap-1">
-                    <span id="status-dot" class="h-2 w-2 rounded-full bg-orange-500 shrink-0"></span>
-                    <span id="label-fonte" class="font-bold text-[8px] uppercase tracking-tighter whitespace-nowrap">BANCO CENTRAL (...)</span>
+    <!-- Header / Nav -->
+    <header class="bg-white border-b border-slate-200/80 sticky top-0 z-50 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col lg:flex-row justify-between items-center gap-4">
+            
+            <!-- Perfil do Investidor -->
+            <div class="flex items-center gap-3 w-full lg:w-auto">
+                <div class="p-2.5 bg-brand-500/10 text-brand-600 rounded-xl border border-brand-500/20">
+                    <i class="fa-solid fa-chart-line text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <span class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block">Gestão de Patrimônio</span>
+                    <input type="text" id="nome-investidor" placeholder="Digite seu nome..." class="bg-transparent font-bold text-brand-600 text-sm w-full outline-none border-b border-transparent hover:border-slate-300 focus:border-brand-500 transition py-0.5" oninput="salvarTudo()">
                 </div>
             </div>
-        </div>
-    </nav>
 
-    <main class="max-w-[1200px] mx-auto">
-        <div class="flex gap-2 mb-4">
-            <button onclick="buscarDadosPublicos()" class="bg-blue-600 text-white px-4 py-2 rounded text-[10px] font-bold uppercase hover:bg-blue-700 transition"><i class="fa-solid fa-rotate mr-2"></i>Sincronizar</button>
-            <button onclick="exportarDados()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded text-[10px] font-bold uppercase hover:bg-slate-300">Backup</button>
-            <button onclick="document.getElementById('inputImport').click()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded text-[10px] font-bold uppercase hover:bg-slate-300">Importar</button>
-            <button onclick="window.print()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded text-[10px] font-bold uppercase hover:bg-slate-300"><i class="fa-solid fa-print mr-2"></i>Imprimir</button>
+            <!-- Card Patrimônio Líquido -->
+            <div class="bg-slate-900 text-white px-5 py-2.5 rounded-xl border border-slate-800 shadow-sm text-center w-full lg:w-auto flex flex-col items-center justify-center">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Patrimônio Líquido Estimado</span>
+                <div id="grand-total" class="text-xl sm:text-2xl font-black font-mono text-emerald-400">R$ 0,00</div>
+            </div>
+
+            <!-- Indicadores de Mercado (Cotações & CDI) -->
+            <div class="flex items-center justify-between lg:justify-end gap-3 sm:gap-4 w-full lg:w-auto bg-slate-50 lg:bg-transparent p-2.5 lg:p-0 rounded-xl border border-slate-200 lg:border-none">
+                <div class="text-right px-2 border-r border-slate-200">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase block">Dólar</span>
+                    <span id="top-usd" class="font-mono font-bold text-emerald-600 text-xs">R$ 0,00</span>
+                </div>
+                <div class="text-right px-2 border-r border-slate-200">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase block">Euro</span>
+                    <span id="top-eur" class="font-mono font-bold text-brand-700 text-xs">R$ 0,00</span>
+                </div>
+                <div class="text-right px-2 border-r border-slate-200">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase block">CDI</span>
+                    <span id="display-cdi" class="font-mono font-bold text-brand-600 text-xs">---</span>
+                </div>
+                <div class="text-right pl-1">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase block">Mercado</span>
+                    <div id="status-text" class="flex items-center justify-end gap-1.5 mt-0.5">
+                        <span id="status-dot" class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span id="label-fonte" class="font-bold text-[9px] uppercase tracking-tighter text-slate-600">BACEN (...)</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-grow space-y-4">
+
+        <!-- Barra de Ações (Botões) -->
+        <div class="flex flex-wrap items-center gap-2 no-print">
+            <button onclick="buscarDadosPublicos()" class="inline-flex items-center gap-1.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition shadow-sm">
+                <i class="fa-solid fa-rotate text-xs"></i> Sincronizar
+            </button>
+            <button onclick="exportarDados()" class="inline-flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition shadow-sm">
+                <i class="fa-solid fa-file-export text-xs"></i> Backup
+            </button>
+            <button onclick="document.getElementById('inputImport').click()" class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition shadow-sm">
+                <i class="fa-solid fa-file-import text-xs"></i> Importar
+            </button>
+            <button onclick="window.print()" class="inline-flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold px-3.5 py-2 rounded-lg transition">
+                <i class="fa-solid fa-print text-xs"></i> Imprimir
+            </button>
             <input type="file" id="inputImport" class="hidden" accept=".json" onchange="importarDados(event)">
         </div>
 
-        <div class="card overflow-hidden">
-            <div class="invest-row header-row">
-                <div></div><div>Ativo</div><div>Valor / Quantia</div><div>Data Início</div><div>Aporte Mensal</div><div class="text-right">Total Líquido (BRL)</div>
-            </div>
-            
-            <div id="portfolio-list">
-                <div class="invest-row">
-                    <div class="h-full bg-blue-500"></div>
-                    <div class="font-bold">Master DI (100% CDI)</div>
-                    <input type="number" id="v-master" placeholder="R$" oninput="salvarTudo()">
-                    <input type="date" id="d-master" oninput="salvarTudo()">
-                    <input type="number" id="a-master" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-master" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
-                </div>
-                <div class="invest-row">
-                    <div class="h-full bg-red-500"></div>
-                    <div class="font-bold">Fundo Mapfre</div>
-                    <input type="number" id="v-mapfre" placeholder="R$" oninput="salvarTudo()">
-                    <input type="date" id="d-mapfre" oninput="salvarTudo()">
-                    <input type="number" id="a-mapfre" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-mapfre" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
-                </div>
-                <div class="invest-row">
-                    <div class="h-full bg-indigo-500"></div>
-                    <div class="font-bold">Previdência</div>
-                    <input type="number" id="v-prev" placeholder="R$" oninput="salvarTudo()">
-                    <input type="date" id="d-prev" oninput="salvarTudo()">
-                    <input type="number" id="a-prev" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-prev" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
-                </div>
-                <div class="invest-row">
-                    <div class="h-full bg-emerald-500"></div>
-                    <div class="font-bold">Tesouro Selic</div>
-                    <input type="number" id="v-selic" placeholder="R$" oninput="salvarTudo()">
-                    <input type="date" id="d-selic" oninput="salvarTudo()">
-                    <input type="number" id="a-selic" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-selic" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
-                </div>
-                <div class="invest-row">
-                    <div class="h-full bg-cyan-400"></div>
-                    <div class="font-bold">LCI / LCA</div>
-                    <input type="number" id="v-lci" placeholder="R$" oninput="salvarTudo()">
-                    <input type="date" id="d-lci" oninput="salvarTudo()">
-                    <input type="number" id="a-lci" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-lci" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
-                </div>
-                <div class="invest-row">
-                    <div class="h-full bg-orange-400"></div>
-                    <div class="font-bold">Poupança</div>
-                    <input type="number" id="v-poup" placeholder="R$" oninput="salvarTudo()">
-                    <input type="date" id="d-poup" oninput="salvarTudo()">
-                    <input type="number" id="a-poup" placeholder="Aporte R$" oninput="salvarTudo()">
-                    <div id="res-total-poup" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
-                </div>
+        <!-- Tabela de Portfólio -->
+        <div class="card-container bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-white font-bold uppercase tracking-wider text-[10px]">
+                            <th class="w-1.5 py-3.5 px-0"></th>
+                            <th class="py-3.5 px-4">Ativo</th>
+                            <th class="py-3.5 px-3">Valor / Quantia</th>
+                            <th class="py-3.5 px-3">Data Início</th>
+                            <th class="py-3.5 px-3">Aporte Mensal</th>
+                            <th class="py-3.5 px-4 text-right">Total Líquido (BRL)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolio-list" class="divide-y divide-slate-100 font-medium text-slate-700">
+                        
+                        <!-- Master DI -->
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="bg-blue-500 p-0"></td>
+                            <td class="py-3 px-4 font-bold text-slate-900">Master DI (100% CDI)</td>
+                            <td class="py-2 px-3"><input type="number" id="v-master" placeholder="R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="date" id="d-master" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="number" id="a-master" placeholder="Aporte R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-3 px-4 text-right font-black font-mono text-slate-900 text-sm" id="res-total-master">R$ 0,00</td>
+                        </tr>
 
-                <div class="invest-row">
-                    <div class="h-full bg-emerald-600"></div>
-                    <div class="font-bold">Dólar (USD) <span id="cot-usd" class="text-[9px] text-slate-400 mono block"></span></div>
-                    <input type="number" id="v-usd" placeholder="US$" oninput="salvarTudo()">
-                    <input type="date" id="d-usd" oninput="salvarTudo()">
-                    <input type="number" id="a-usd" placeholder="Aporte US$" oninput="salvarTudo()">
-                    <div id="res-total-usd" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
-                </div>
-                <div class="invest-row border-none">
-                    <div class="h-full bg-blue-800"></div>
-                    <div class="font-bold">Euro (EUR) <span id="cot-eur" class="text-[9px] text-slate-400 mono block"></span></div>
-                    <input type="number" id="v-eur" placeholder="€" oninput="salvarTudo()">
-                    <input type="date" id="d-eur" oninput="salvarTudo()">
-                    <input type="number" id="a-eur" placeholder="Aporte €" oninput="salvarTudo()">
-                    <div id="res-total-eur" class="text-right font-black mono res-preto text-sm">R$ 0,00</div>
-                </div>
+                        <!-- Fundo Mapfre -->
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="bg-red-500 p-0"></td>
+                            <td class="py-3 px-4 font-bold text-slate-900">Fundo Mapfre</td>
+                            <td class="py-2 px-3"><input type="number" id="v-mapfre" placeholder="R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="date" id="d-mapfre" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="number" id="a-mapfre" placeholder="Aporte R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-3 px-4 text-right font-black font-mono text-slate-900 text-sm" id="res-total-mapfre">R$ 0,00</td>
+                        </tr>
+
+                        <!-- Previdência -->
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="bg-indigo-500 p-0"></td>
+                            <td class="py-3 px-4 font-bold text-slate-900">Previdência</td>
+                            <td class="py-2 px-3"><input type="number" id="v-prev" placeholder="R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="date" id="d-prev" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="number" id="a-prev" placeholder="Aporte R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-3 px-4 text-right font-black font-mono text-slate-900 text-sm" id="res-total-prev">R$ 0,00</td>
+                        </tr>
+
+                        <!-- Tesouro Selic -->
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="bg-emerald-500 p-0"></td>
+                            <td class="py-3 px-4 font-bold text-slate-900">Tesouro Selic</td>
+                            <td class="py-2 px-3"><input type="number" id="v-selic" placeholder="R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="date" id="d-selic" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="number" id="a-selic" placeholder="Aporte R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-3 px-4 text-right font-black font-mono text-slate-900 text-sm" id="res-total-selic">R$ 0,00</td>
+                        </tr>
+
+                        <!-- LCI / LCA -->
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="bg-cyan-400 p-0"></td>
+                            <td class="py-3 px-4 font-bold text-slate-900">LCI / LCA</td>
+                            <td class="py-2 px-3"><input type="number" id="v-lci" placeholder="R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="date" id="d-lci" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="number" id="a-lci" placeholder="Aporte R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-3 px-4 text-right font-black font-mono text-slate-900 text-sm" id="res-total-lci">R$ 0,00</td>
+                        </tr>
+
+                        <!-- Poupança -->
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="bg-amber-400 p-0"></td>
+                            <td class="py-3 px-4 font-bold text-slate-900">Poupança</td>
+                            <td class="py-2 px-3"><input type="number" id="v-poup" placeholder="R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="date" id="d-poup" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="number" id="a-poup" placeholder="Aporte R$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-3 px-4 text-right font-black font-mono text-slate-900 text-sm" id="res-total-poup">R$ 0,00</td>
+                        </tr>
+
+                        <!-- Dólar -->
+                        <tr class="hover:bg-slate-50/80 transition">
+                            <td class="bg-emerald-600 p-0"></td>
+                            <td class="py-3 px-4 font-bold text-slate-900">
+                                Dólar (USD)
+                                <span id="cot-usd" class="text-[10px] text-slate-400 font-mono font-normal block"></span>
+                            </td>
+                            <td class="py-2 px-3"><input type="number" id="v-usd" placeholder="US$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="date" id="d-usd" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="number" id="a-usd" placeholder="Aporte US$" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-3 px-4 text-right font-black font-mono text-slate-900 text-sm" id="res-total-usd">R$ 0,00</td>
+                        </tr>
+
+                        <!-- Euro -->
+                        <tr class="hover:bg-slate-50/80 transition border-none">
+                            <td class="bg-brand-800 p-0"></td>
+                            <td class="py-3 px-4 font-bold text-slate-900">
+                                Euro (EUR)
+                                <span id="cot-eur" class="text-[10px] text-slate-400 font-mono font-normal block"></span>
+                            </td>
+                            <td class="py-2 px-3"><input type="number" id="v-eur" placeholder="€" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="date" id="d-eur" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-2 px-3"><input type="number" id="a-eur" placeholder="Aporte €" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-brand-500 outline-none w-full" oninput="salvarTudo()"></td>
+                            <td class="py-3 px-4 text-right font-black font-mono text-slate-900 text-sm" id="res-total-eur">R$ 0,00</td>
+                        </tr>
+
+                    </tbody>
+                </table>
             </div>
         </div>
+
     </main>
 
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200/80 py-5 text-center text-xs text-slate-400 no-print mt-auto">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>Gestão de Patrimônio e Investimentos • Atualização de Cotações em Tempo Real</p>
+        </div>
+    </footer>
+
+    <!-- Lógica de Negócio (Mantida 100% Intacta) -->
     <script>
         let globalCDI = 10.75; 
         let taxaUSD = 0;
@@ -175,12 +267,12 @@
                     let taxaAnual = (Math.pow(1 + (taxaDiaria/100), 252) - 1) * 100;
                     globalCDI = taxaAnual - 0.10; 
                     display.innerText = globalCDI.toFixed(2) + "%";
-                    dot.className = "h-2 w-2 rounded-full bg-green-500 shrink-0";
+                    dot.className = "h-2 w-2 rounded-full bg-emerald-500 shrink-0";
                     label.innerText = "BANCO CENTRAL (ONLINE)";
                 }
             } catch (e) {
                 display.innerText = globalCDI.toFixed(2) + "%";
-                dot.className = "h-2 w-2 rounded-full bg-orange-500 shrink-0";
+                dot.className = "h-2 w-2 rounded-full bg-amber-500 shrink-0";
                 label.innerText = "BANCO CENTRAL (OFFLINE)";
             }
 
@@ -322,7 +414,7 @@
             const agora = new Date();
             const dataFmt = agora.toLocaleDateString('pt-BR').replace(/\//g, '-');
             const horaFmt = agora.getHours() + 'h' + agora.getMinutes().toString().padStart(2, '0');
-            const nomeArquivo = `Gestão_de_Investimentos_2026_${dataFmt}_${horaFmt}.json`;
+            const nomeArquivo = `Gestao_de_Investimentos_2026_${dataFmt}_${horaFmt}.json`;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([data], {type: "application/json"}));
             a.download = nomeArquivo;
