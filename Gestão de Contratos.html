@@ -270,6 +270,7 @@
                 <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="bg-rose-900/60 hover:bg-rose-800 text-rose-200 px-2 py-1 rounded" title="Início da Página">
   <i class="fa-solid fa-arrow-up"></i>
 </button>
+
 <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" class="bg-rose-900/60 hover:bg-rose-800 text-rose-200 px-2 py-1 rounded" title="Fim da Página">
   <i class="fa-solid fa-arrow-down"></i>
 </button>
@@ -493,6 +494,7 @@
 
         function clearAll() { if(confirm("Limpar o texto deste contrato?")) { document.getElementById('editor').innerHTML = ''; updateCurrentData(); } }
 
+      // Manipulador de colar (paste) garantindo a atualização dos dados
         document.getElementById('editor').addEventListener('paste', function(e) {
             e.preventDefault();
             let html = (e.originalEvent || e).clipboardData.getData('text/html');
@@ -510,6 +512,8 @@
                 document.execCommand('insertText', false, text);
             }
             document.execCommand('fontName', false, 'Courier New');
+            
+            // Atualiza os dados salvos imediatamente após colar
             updateCurrentData();
         });
 
@@ -561,6 +565,11 @@
             }
             updateCurrentData();
         }
+
+        // Salva as informações automaticamente antes de fechar ou recarregar a página
+        window.addEventListener('beforeunload', function () {
+            updateCurrentData();
+        });
     </script>
 </body>
 </html>
