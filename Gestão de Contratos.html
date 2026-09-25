@@ -277,6 +277,11 @@
                 <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" class="bg-rose-900/60 hover:bg-rose-800 text-rose-200 px-2 py-1 rounded" title="Fim da Página">
                   <i class="fa-solid fa-arrow-down"></i>
                 </button>
+
+		<button onclick="updateCurrentData(); alert('Contrato salvo com sucesso!');" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded font-bold" title="Salvar Alterações">
+    <i class="fa-solid fa-floppy-disk"></i> Salvar
+</button>
+
             </div>
 
         </div>
@@ -497,30 +502,40 @@
 
         function clearAll() { if(confirm("Limpar o texto deste contrato?")) { document.getElementById('editor').innerHTML = ''; updateCurrentData(); } }
 
-        // Manipulador de colar (paste) com garantia de sincronização
+        // Manipulador de colar (paste) corrigido para suportar o Microsoft Word
         document.getElementById('editor').addEventListener('paste', function(e) {
             e.preventDefault();
-            let html = (e.originalEvent || e).clipboardData.getData('text/html');
+            let clipboardData = e.clipboardData || window.clipboardData;
+            let html = clipboardData.getData('text/html');
+            let text = clipboardData.getData('text/plain');
+
             if (html) {
                 let div = document.createElement('div');
                 div.innerHTML = html;
+
+                // Remove tags e comentários proprietários do Word/Office
                 div.querySelectorAll('*').forEach(el => {
-                    el.style.border = 'none'; el.style.boxShadow = 'none'; el.style.background = 'transparent';
-                    el.style.width = '100%'; el.style.maxWidth = '100%'; el.style.boxSizing = 'border-box';
-                    if (['P', 'DIV', 'LI'].includes(el.tagName)) { el.style.display = 'block'; el.style.margin = '0 0 10px 0'; el.style.padding = '0'; }
+                    el.removeAttribute('style');
+                    el.removeAttribute('class');
+                    if (['P', 'DIV', 'LI'].includes(el.tagName)) {
+                        el.style.display = 'block';
+                        el.style.margin = '0 0 10px 0';
+                        el.style.padding = '0';
+                    }
                 });
+
                 document.execCommand('insertHTML', false, div.innerHTML);
-            } else {
-                const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            } else if (text) {
                 document.execCommand('insertText', false, text);
             }
+
             document.execCommand('fontName', false, 'Courier New');
-            
+
+            // Garante que o DOM processou o texto do Word antes de salvar no localStorage
             setTimeout(() => {
                 updateCurrentData();
-            }, 50);
+            }, 150);
         });
-
         // Guarda os dados imediatamente ao clicar/sair do editor
         document.getElementById('editor').addEventListener('blur', function() {
             updateCurrentData();
