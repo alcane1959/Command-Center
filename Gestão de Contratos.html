@@ -494,7 +494,7 @@
 
         function clearAll() { if(confirm("Limpar o texto deste contrato?")) { document.getElementById('editor').innerHTML = ''; updateCurrentData(); } }
 
-      // Manipulador de colar (paste) garantindo a atualização dos dados
+// Manipulador de colar (paste) corrigido com garantia de sincronização
         document.getElementById('editor').addEventListener('paste', function(e) {
             e.preventDefault();
             let html = (e.originalEvent || e).clipboardData.getData('text/html');
@@ -513,7 +513,14 @@
             }
             document.execCommand('fontName', false, 'Courier New');
             
-            // Atualiza os dados salvos imediatamente após colar
+            // Aguarda a renderização do conteúdo colar no DOM antes de guardar
+            setTimeout(() => {
+                updateCurrentData();
+            }, 50);
+        });
+
+        // Guarda os dados imediatamente ao clicar/sair do editor
+        document.getElementById('editor').addEventListener('blur', function() {
             updateCurrentData();
         });
 
