@@ -146,7 +146,7 @@
 
         <!-- Abas de Navegação -->
         <div class="no-print">
-            <div class="flex items-center gap-1 overflow-x-auto pb-1" id="tab-list"></div>
+            <div class="flex flex-wrap items-center gap-1 pb-1" id="tab-list"></div>
         </div>
 
         <!-- Formulário de Dados do Imóvel -->
@@ -154,7 +154,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Imóvel (Nome Aba):</label>
-                    <input type="text" id="in-imovel" oninput="updateCurrentData(true)" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:bg-white focus:outline-none transition">
+                    <input type="text" id="in-imovel" oninput="updateCurrentData()" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:bg-white focus:outline-none transition">
                 </div>
                 <div>
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Cidade / Bairro:</label>
@@ -172,9 +172,9 @@
         </div>
 
         <!-- Toolbar de Formatação -->
-        <div class="toolbar no-print bg-slate-800 text-white rounded-xl p-2.5 shadow-md flex flex-wrap items-center justify-center text-xs sticky top-20 z-40 w-full">
+        <div class="toolbar no-print bg-slate-800 text-white rounded-xl p-2.5 shadow-md flex flex-wrap gap-2 items-center justify-center text-xs sticky top-20 z-40">
             
-            <div class="flex items-center justify-center gap-1.5 flex-wrap w-full">
+            <div class="flex items-center gap-1.5 flex-wrap">
                 <!-- Fonte -->
                 <select onchange="document.execCommand('fontName', false, this.value)" class="bg-slate-700 text-white border border-slate-600 rounded px-2 py-1 text-xs focus:outline-none">
                     <option value="Courier New">Courier</option>
@@ -251,8 +251,7 @@
                 <button onclick="document.execCommand('justifyCenter')" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded" title="Centralizar"><i class="fa-solid fa-align-center"></i></button>
                 <button onclick="document.execCommand('justifyRight')" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded" title="Direita"><i class="fa-solid fa-align-right"></i></button>
                 <button onclick="document.execCommand('justifyFull')" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded" title="Justificado"><i class="fa-solid fa-align-justify"></i></button>
-
-                <div class="h-4 w-px bg-slate-600 mx-1"></div>
+            </div>
 
                 <!-- Utilitários -->
                 <button onclick="insertDate()" class="bg-slate-700 hover:bg-slate-600 px-2 py-1 rounded" title="Inserir Data"><i class="fa-regular fa-calendar-days"></i> Data</button>
@@ -263,25 +262,19 @@
                 <!-- Localizar -->                
                 <div class="flex items-center gap-1 bg-slate-700 px-2 py-0.5 rounded border border-slate-600">
                     <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
-                    <input type="text" id="busca-texto" placeholder="Localizar..." class="bg-transparent text-white px-1 py-0.5 w-[500px] focus:outline-none text-xs">
+                    <input type="text" id="busca-texto" placeholder="Localizar..." class="bg-transparent text-white px-1 py-0.5 w-96 focus:outline-none text-xs">
                     <button type="button" id="btn-next" onclick="buscarNoTexto()" class="bg-brand-600 hover:bg-brand-500 text-white font-bold px-2 py-0.5 rounded text-[10px]" title="Procurar Próximo">Next</button>
-                </div>
 
-                <div class="h-4 w-px bg-slate-600 mx-1"></div>
+<div class="h-4 w-px bg-slate-600 mx-1"></div>
 
-                <!-- Navegação de Página -->
                 <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="bg-rose-900/60 hover:bg-rose-800 text-rose-200 px-2 py-1 rounded" title="Início da Página">
-                  <i class="fa-solid fa-arrow-up"></i>
-                </button>
-
-                <button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" class="bg-rose-900/60 hover:bg-rose-800 text-rose-200 px-2 py-1 rounded" title="Fim da Página">
-                  <i class="fa-solid fa-arrow-down"></i>
-                </button>
-
-		<button onclick="updateCurrentData(); alert('Contrato salvo com sucesso!');" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded font-bold" title="Salvar Alterações">
-    <i class="fa-solid fa-floppy-disk"></i> Salvar
+  <i class="fa-solid fa-arrow-up"></i>
 </button>
 
+<button onclick="window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'})" class="bg-rose-900/60 hover:bg-rose-800 text-rose-200 px-2 py-1 rounded" title="Fim da Página">
+  <i class="fa-solid fa-arrow-down"></i>
+</button>
+                </div>
             </div>
 
         </div>
@@ -389,14 +382,13 @@
             document.getElementById('editor').innerHTML = item.contrato || '';
         }
 
-        function updateCurrentData(updateTabs = false) {
+        function updateCurrentData() {
             imoveis[activeIndex].nome = document.getElementById('in-imovel').value;
             imoveis[activeIndex].pref = document.getElementById('in-pref').value;
             imoveis[activeIndex].iptu = document.getElementById('in-iptu').value;
             imoveis[activeIndex].mat = document.getElementById('in-mat').value;
             imoveis[activeIndex].contrato = document.getElementById('editor').innerHTML;
-            if (updateTabs) renderTabs();
-            saveToStorage();
+            renderTabs(); saveToStorage();
         }
 
         function saveToStorage() { localStorage.setItem('alberto_multicontratos', JSON.stringify(imoveis)); }
@@ -502,42 +494,26 @@
 
         function clearAll() { if(confirm("Limpar o texto deste contrato?")) { document.getElementById('editor').innerHTML = ''; updateCurrentData(); } }
 
-        // Manipulador de colar (paste) corrigido para suportar o Microsoft Word
+      // Manipulador de colar (paste) garantindo a atualização dos dados
         document.getElementById('editor').addEventListener('paste', function(e) {
             e.preventDefault();
-            let clipboardData = e.clipboardData || window.clipboardData;
-            let html = clipboardData.getData('text/html');
-            let text = clipboardData.getData('text/plain');
-
+            let html = (e.originalEvent || e).clipboardData.getData('text/html');
             if (html) {
                 let div = document.createElement('div');
                 div.innerHTML = html;
-
-                // Remove tags e comentários proprietários do Word/Office
                 div.querySelectorAll('*').forEach(el => {
-                    el.removeAttribute('style');
-                    el.removeAttribute('class');
-                    if (['P', 'DIV', 'LI'].includes(el.tagName)) {
-                        el.style.display = 'block';
-                        el.style.margin = '0 0 10px 0';
-                        el.style.padding = '0';
-                    }
+                    el.style.border = 'none'; el.style.boxShadow = 'none'; el.style.background = 'transparent';
+                    el.style.width = '100%'; el.style.maxWidth = '100%'; el.style.boxSizing = 'border-box';
+                    if (['P', 'DIV', 'LI'].includes(el.tagName)) { el.style.display = 'block'; el.style.margin = '0 0 10px 0'; el.style.padding = '0'; }
                 });
-
                 document.execCommand('insertHTML', false, div.innerHTML);
-            } else if (text) {
+            } else {
+                const text = (e.originalEvent || e).clipboardData.getData('text/plain');
                 document.execCommand('insertText', false, text);
             }
-
             document.execCommand('fontName', false, 'Courier New');
-
-            // Garante que o DOM processou o texto do Word antes de salvar no localStorage
-            setTimeout(() => {
-                updateCurrentData();
-            }, 150);
-        });
-        // Guarda os dados imediatamente ao clicar/sair do editor
-        document.getElementById('editor').addEventListener('blur', function() {
+            
+            // Atualiza os dados salvos imediatamente após colar
             updateCurrentData();
         });
 
