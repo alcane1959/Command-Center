@@ -401,12 +401,72 @@
             renderTabs(); saveToStorage();
         }
 
-        function saveToStorage() { localStorage.setItem('alberto_multicontratos', JSON.stringify(imoveis)); }
-
-        window.onload = function() {
-            const saved = localStorage.getItem('alberto_multicontratos');
-            if (saved) imoveis = JSON.parse(saved);
-            renderTabs(); loadCurrentData();
+        // IndexedDB permite armazenar backups grandes sem o limite reduzido do localStorage.
+        const DB_NAME = 'gestao_contratos_db';
+        const DB_VERSION = 1;
+        const STORE_NAME = 'dados';
+        const DATA_KEY = 'imoveis';
+        let saveTimer = null;
+        function openDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+        async function persistNow() {
+            const db = await openDatabase();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                tx.objectStore(STORE_NAME).put(imoveis, DATA_KEY);
+                tx.oncomplete = () => { db.close(); resolve(); };
+                tx.onerror = () => { const error = tx.error; db.close(); reject(error); };
+                tx.onabort = () => { const error = tx.error; db.close(); reject(error); };
+            });
+        }
+        function saveToStorage() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => persistNow().catch(error => {
+                console.error('Falha ao salvar:', error);
+                alert('Não foi possível salvar no navegador. Exporte um backup JSON.');
+            }), 500);
+        }
+        async function loadFromStorage() {
+            const db = await openDatabase();
+            const saved = await new Promise((resolve, reject) => {
+                const request = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(DATA_KEY);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+            db.close();
+            return saved;
+        }
+        window.onload = async function() {
+            try {
+                let saved = await loadFromStorage();
+                if (!saved) {
+                    const legacy = localStorage.getItem('alberto_multicontratos');
+                    if (legacy) {
+                        saved = JSON.parse(legacy);
+                        if (Array.isArray(saved)) {
+                            imoveis = saved;
+                            await persistNow();
+                            localStorage.removeItem('alberto_multicontratos');
+                        }
+                    }
+                }
+                if (Array.isArray(saved) && saved.length) imoveis = saved;
+            } catch (error) {
+                console.error('Falha ao carregar:', error);
+                alert('Não foi possível carregar os dados salvos. Você ainda pode importar o backup JSON.');
+            }
+            activeIndex = 0;
+            renderTabs();
+            loadCurrentData();
         };
 
         async function copyToClipboard() {
@@ -440,15 +500,35 @@
             a.click();
         }
 
-        function importBackup(event) {
-            const file = event.target.files[0];
+        async function importBackup(event) {
+            const input = event.target;
+            const file = input.files && input.files[0];
             if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imoveis = JSON.parse(e.target.result); activeIndex = 0;
-                saveToStorage(); location.reload();
-            };
-            reader.readAsText(file);
+            try {
+                const text = await file.text();
+                const parsed = JSON.parse(text.replace(/^\uFEFF/, ''));
+                if (!Array.isArray(parsed) || !parsed.length) throw new Error('O backup não contém uma lista de imóveis.');
+                imoveis = parsed.map((item, index) => {
+                    if (!item || typeof item !== 'object') throw new Error(`Registro ${index + 1} inválido.`);
+                    return {
+                        nome: String(item.nome ?? `Imóvel ${index + 1}`),
+                        pref: String(item.pref ?? ''),
+                        iptu: String(item.iptu ?? ''),
+                        mat: String(item.mat ?? ''),
+                        contrato: typeof item.contrato === 'string' ? item.contrato : String(item.contrato ?? '')
+                    };
+                });
+                activeIndex = 0;
+                await persistNow();
+                renderTabs();
+                loadCurrentData();
+                alert(`Backup importado por completo: ${imoveis.length} aba(s).`);
+            } catch (error) {
+                console.error('Erro ao importar:', error);
+                alert(`Não foi possível importar o backup: ${error.message}`);
+            } finally {
+                input.value = '';
+            }
         }
 
         function importWordDoc(event) {
@@ -607,9 +687,11 @@
             updateCurrentData();
         }
 
-        // Salva as informações automaticamente antes de fechar ou recarregar a página
-        window.addEventListener('beforeunload', function () {
-            updateCurrentData();
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden') {
+                clearTimeout(saveTimer);
+                persistNow().catch(error => console.error('Falha ao salvar ao ocultar:', error));
+            }
         });
     </script>
 </body>
