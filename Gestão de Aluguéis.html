@@ -215,7 +215,8 @@
 <script>
     const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     let currentYear = localStorage.getItem('selected_year') || new Date().getFullYear();
-    let currentMonthIdx = 0;
+    let currentMonthIdx = parseInt(localStorage.getItem('selected_month') || '0', 10);
+    if (!Number.isInteger(currentMonthIdx) || currentMonthIdx < 0 || currentMonthIdx > 11) currentMonthIdx = 0;
 
     function init() {
         const yearSelect = document.getElementById('current-year-select');
@@ -224,10 +225,11 @@
         }
         const tabs = document.getElementById('month-tabs');
         meses.forEach((m, i) => { 
-            tabs.innerHTML += `<button class="month-btn py-2 px-1 text-center border border-slate-200 bg-slate-50 hover:bg-slate-100 font-bold rounded-lg text-xs text-slate-700 transition shadow-sm ${i===0?'!border-brand-600 !text-brand-600 !bg-brand-50 shadow-inner':''}" id="tab-${i}" onclick="switchMonth(${i})">${m}</button>`; 
+            tabs.innerHTML += `<button class="month-btn py-2 px-1 text-center border border-slate-200 bg-slate-50 hover:bg-slate-100 font-bold rounded-lg text-xs text-slate-700 transition shadow-sm ${i===currentMonthIdx?'!border-brand-600 !text-brand-600 !bg-brand-50 shadow-inner':''}" id="tab-${i}" onclick="switchMonth(${i})">${m}</button>`; 
         });
         
-        loadMonthData(0);
+        document.getElementById('current-month-display').innerText = meses[currentMonthIdx];
+        loadMonthData(currentMonthIdx);
         document.getElementById('locador-nome').value = localStorage.getItem('locador_nome') || '';
         updateAnnualTotal();
     }
@@ -351,6 +353,7 @@
     function switchMonth(idx) { 
         saveData(false); 
         currentMonthIdx = idx; 
+        localStorage.setItem('selected_month', currentMonthIdx);
         document.querySelectorAll('.month-btn').forEach(b => {
             b.classList.remove('!border-brand-600', '!text-brand-600', '!bg-brand-50', 'shadow-inner');
         }); 
@@ -402,7 +405,7 @@
         let backup = {}; 
         for (let i = 0; i < localStorage.length; i++) { 
             let k = localStorage.key(i); 
-            if (k.startsWith('data_') || k === 'locador_nome' || k === 'selected_year') {
+            if (k.startsWith('data_') || k === 'locador_nome' || k === 'selected_year' || k === 'selected_month') {
                 backup[k] = localStorage.getItem(k); 
             }
         } 
