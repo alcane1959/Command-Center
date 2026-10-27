@@ -164,3 +164,7 @@ Este software destina-se exclusivamente ao gerenciamento patrimonial, financeiro
 **Alberto de Campos Neto**
 
 **Center Soft Inc.®**
+
+---
+
+Este projeto é uma demonstração educacional desenvolvida para estudos de HTML, CSS e JavaScript. A empresa mencionada é fictícia e qualquer semelhança com empresas reais é mera coincidência.
