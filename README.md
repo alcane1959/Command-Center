@@ -149,9 +149,9 @@ Os responsáveis pelo sistema não se responsabilizam por perdas decorrentes de:
 
 ---
 
-**Instalação no computador**
+### Instalação no computador
 
-**No Google Chrome ou Microsoft Edge:**
+### No Google Chrome ou Microsoft Edge:
 
 1 - Abra o endereço publicado do projeto.
 2 - Aguarde o carregamento completo da página.
@@ -161,9 +161,9 @@ Os responsáveis pelo sistema não se responsabilizam por perdas decorrentes de:
 
 Depois disso, o aplicativo poderá ser aberto pelo menu Iniciar, pela área de trabalho ou pelo gerenciador de aplicativos do sistema.
 
-**Instalação no celular ou tablet**
+### Instalação no celular ou tablet
 
-**Em navegadores compatíveis:**
+### Em navegadores compatíveis:
 
 1 - Abra o endereço do projeto.
 2 - Acesse o menu do navegador.
