@@ -153,11 +153,11 @@ Os responsáveis pelo sistema não se responsabilizam por perdas decorrentes de:
 
 ### No Google Chrome ou Microsoft Edge:
 
-  1 - Abra o endereço publicado do projeto.
-  2 - Aguarde o carregamento completo da página.
-  3 - Clique no ícone de instalação exibido na barra de endereço ou abra o menu do navegador.
-  4 - Selecione Instalar aplicativo ou Instalar este site como aplicativo.
-  5 - Confirme a instalação.
+  1. Abra o endereço publicado do projeto.
+  2. Aguarde o carregamento completo da página.
+  3. Clique no ícone de instalação exibido na barra de endereço ou abra o menu do navegador.
+  4. Selecione Instalar aplicativo ou Instalar este site como aplicativo.
+  5. Confirme a instalação.
 
 Depois disso, o aplicativo poderá ser aberto pelo menu Iniciar, pela área de trabalho ou pelo gerenciador de aplicativos do sistema.
 
@@ -165,10 +165,10 @@ Depois disso, o aplicativo poderá ser aberto pelo menu Iniciar, pela área de t
 
 ### Em navegadores compatíveis:
 
-1 - Abra o endereço do projeto.
-2 - Acesse o menu do navegador.
-3 - Selecione Instalar aplicativo ou Adicionar à tela inicial.
-4 - Confirme o nome e a instalação.
+1. Abra o endereço do projeto.
+2. Acesse o menu do navegador.
+3. Selecione Instalar aplicativo ou Adicionar à tela inicial.
+4. Confirme o nome e a instalação.
 
 O ícone será adicionado à tela inicial do dispositivo.
 
