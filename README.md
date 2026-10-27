@@ -149,24 +149,6 @@ Os responsáveis pelo sistema não se responsabilizam por perdas decorrentes de:
 
 ---
 
-## Licenciamento
-
-**Command Center by Center Soft Inc.®**
-
-Todos os direitos reservados.
-
-Este software destina-se exclusivamente ao gerenciamento patrimonial, financeiro e administrativo do usuário final autorizado.
-
----
-
-## Autor
-
-**Alberto de Campos Neto**
-
-**Center Soft Inc.®**
-
----
-
 **Instalação no computador**
 
 **No Google Chrome ou Microsoft Edge:**
@@ -197,6 +179,24 @@ Abrir somente o arquivo index.html pelo computador não garante a instalação c
 O projeto deve ser publicado em HTTPS para utilizar os recursos completos de instalação e service worker.
 O funcionamento offline depende da configuração do service-worker.js e dos arquivos adicionados ao cache.
 Atualizações no projeto podem exigir a atualização da versão do cache do service worker.
+
+---
+
+## Licenciamento
+
+**Command Center by Center Soft Inc.®**
+
+Todos os direitos reservados.
+
+Este software destina-se exclusivamente ao gerenciamento patrimonial, financeiro e administrativo do usuário final autorizado.
+
+---
+
+## Autor
+
+**Alberto de Campos Neto**
+
+**Center Soft Inc.®**
 
 ---
 
