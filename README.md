@@ -172,7 +172,6 @@ Este software destina-se exclusivamente ao gerenciamento patrimonial, financeiro
 **No Google Chrome ou Microsoft Edge:**
 
 1 - Abra o endereço publicado do projeto.
-
 2 - Aguarde o carregamento completo da página.
 3 - Clique no ícone de instalação exibido na barra de endereço ou abra o menu do navegador.
 4 - Selecione Instalar aplicativo ou Instalar este site como aplicativo.
