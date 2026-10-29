@@ -106,7 +106,7 @@
                     <button onclick="salvarToken()" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold px-2.5 py-1 rounded transition shadow-sm">Conectar</button>
                 </div>
 
-                <button onclick="sincronizarDadosMestres()" id="btn-sync-master" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1.5">
+                <button onclick="sincronizarDadosMestres(true)" id="btn-sync-master" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1.5">
                     <i class="fa-solid fa-rotate" id="sync-icon-master"></i> Atualizar LPA/VPA
                 </button>
                 
@@ -142,10 +142,33 @@
                 <div class="bg-slate-900 text-white px-6 py-4 rounded-xl border border-slate-800 text-left md:text-right w-full md:w-auto flex flex-row md:flex-col justify-between items-center md:items-end shadow-sm">
                     <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Patrimônio Atual</span>
                     <span id="total-pat" class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight font-mono">R$ 0,00</span>
-                    <span class="text-[10px] text-slate-400 font-mono mt-0.5 hidden md:block">Ref: 2026-02-18</span>
+                    <span class="text-[10px] text-slate-400 font-mono mt-0.5 hidden md:block">Dados conforme última sincronização</span>
                 </div>
             </div>
 
+            <!-- Resumo Inteligente da Carteira -->
+            <section class="grid grid-cols-2 lg:grid-cols-5 gap-3" aria-label="Resumo da carteira">
+                <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"><span class="text-[10px] uppercase font-bold text-slate-400">Total investido</span><div id="card-investido" class="mt-1 text-lg font-black font-mono text-slate-900">R$ 0,00</div></div>
+                <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"><span class="text-[10px] uppercase font-bold text-slate-400">Valor atual</span><div id="card-atual" class="mt-1 text-lg font-black font-mono text-brand-700">R$ 0,00</div></div>
+                <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"><span class="text-[10px] uppercase font-bold text-slate-400">Resultado</span><div id="card-resultado" class="mt-1 text-lg font-black font-mono">R$ 0,00</div></div>
+                <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"><span class="text-[10px] uppercase font-bold text-slate-400">Rentabilidade</span><div id="card-rentabilidade" class="mt-1 text-lg font-black font-mono">0,00%</div></div>
+                <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm col-span-2 lg:col-span-1"><span class="text-[10px] uppercase font-bold text-slate-400">Proventos informados</span><div id="card-proventos" class="mt-1 text-lg font-black font-mono text-emerald-700">R$ 0,00</div></div>
+            </section>
+            <section class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm no-print">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-3">
+                    <div><h3 class="text-sm font-bold text-slate-900">Atualização automática</h3><p id="auto-status" class="text-xs text-slate-500 mt-1">Aguardando configuração.</p></div>
+                    <div class="flex flex-wrap items-end gap-2">
+                        <label class="text-[10px] font-bold uppercase text-slate-500">Intervalo
+                            <select id="auto-interval" class="block mt-1 border border-slate-300 rounded-lg px-2 py-1.5 text-xs">
+                                <option value="0">Desativada</option><option value="300000">5 min</option><option value="900000">15 min</option><option value="1800000">30 min</option><option value="3600000">1 hora</option>
+                            </select>
+                        </label>
+                        <button type="button" onclick="aplicarAtualizacaoAutomatica()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-3 py-2 rounded-lg">Aplicar</button>
+                        <button type="button" onclick="atualizarTudo(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg"><i class="fa-solid fa-rotate"></i> Atualizar agora</button>
+                    </div>
+                </div>
+                <div class="mt-4"><div class="flex justify-between text-[10px] font-bold text-slate-500 uppercase mb-1"><span>Alocação atual</span><span id="allocation-label">Sem dados</span></div><div id="allocation-bar" class="h-3 rounded-full overflow-hidden bg-slate-100 flex"></div></div>
+            </section>
             <!-- Abas de Categoria -->
             <div class="bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm no-print">
                 <div class="grid grid-cols-3 gap-2">
@@ -273,8 +296,9 @@
 
     <script>
         let abaAtiva = 'ACOES'; 
-        let precos = {}; 
+        let precos = JSON.parse(localStorage.getItem('qt_precos_cache') || '{}'); 
         let carteira = JSON.parse(localStorage.getItem('qt_full_cart') || '[]');
+        let editandoIndice = null;
         
         const DB_BASE = { 
             ACOES: {
@@ -321,56 +345,171 @@
             }
         }
 
-        async function sincronizarDadosMestres() {
-            const rawToken = document.getElementById('api-token').value || localStorage.getItem('qt_full_token');
-            const tk = rawToken ? rawToken.trim() : null;
-            if (!tk) return alert("Insira a API KEY!");
-
-            const btn = document.getElementById('btn-sync-master');
-            const icon = document.getElementById('sync-icon-master');
-            btn.disabled = true; icon.classList.add('loading-spin');
-
-            const lista = [...new Set([
-                ...Object.keys(DB.ACOES), 
-                ...Object.keys(DB.FIIS), 
-                ...carteira.map(i => i.t)
-            ])].filter(t => t && t.length > 2).map(t => t.trim().toUpperCase());
-
-            for (const ticker of lista) {
+        function getToken() { return (document.getElementById('api-token').value || localStorage.getItem('qt_full_token') || '').trim(); }
+        function setApiStatus(ok, message = '') {
+            document.getElementById('status-api').className = `h-2.5 w-2.5 rounded-full ${ok ? 'bg-emerald-500' : 'bg-rose-500'}`;
+            if (message) document.getElementById('auto-status').innerText = message;
+        }
+        async function brapiGet(path, params = {}) {
+            const url = new URL(`https://brapi.dev${path}`);
+            Object.entries(params).forEach(([k,v]) => { if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v); });
+            const token = getToken();
+            const response = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {}, cache: 'no-store' });
+            if (!response.ok) {
+                const retry = response.headers.get('Retry-After');
+                let detalhe = '';
                 try {
-                    const r = await fetch(`https://brapi.dev/api/quote/${ticker}?token=${tk}`);
-                    const data = await r.json();
-
-                    if (data.results && data.results[0]) {
-                        const s = data.results[0];
-                        const cat = (ticker.endsWith('11')) ? 'FIIS' : 'ACOES';
-                        
-                        if (!DB[cat][ticker]) DB[cat][ticker] = { l: 0, v: 0, d: 0 };
-                        
-                        DB[cat][ticker].l = s.earningsPerShare || DB[cat][ticker].l || 0;
-                        DB[cat][ticker].v = s.bookValue || DB[cat][ticker].v || 0;
-                        
-                        if (s.dividendYield && s.regularMarketPrice) {
-                            DB[cat][ticker].d = (s.dividendYield * s.regularMarketPrice / 100);
-                        }
-                        precos[ticker] = s.regularMarketPrice;
-                        
-                        updateUI(); 
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                } catch (e) {
-                    console.error(`Erro no ticker ${ticker}:`, e);
+                    const erro = await response.json();
+                    detalhe = erro?.message || erro?.error || erro?.detail || '';
+                } catch (_) {
+                    try { detalhe = await response.text(); } catch (_) {}
                 }
+                throw new Error(`API ${response.status}${detalhe ? `: ${detalhe}` : ''}${retry ? `; tente novamente em ${retry}s` : ''}`);
             }
-
-            localStorage.setItem('qt_db_custom', JSON.stringify(DB));
+            return response.json();
+        }
+        function tickerDoResultado(raw) { return String(raw?.symbol || raw?.requestedSymbol || '').trim().toUpperCase(); }
+        function dadosDoResultado(raw) { return raw?.data || {}; }
+        function numeroValido(valor) {
+            if (valor === null || valor === undefined || valor === '') return null;
+            const n = Number(valor);
+            return Number.isFinite(n) ? n : null;
+        }
+        function tickersDaCarteira() {
+            return [...new Set(carteira.map(i => String(i.t || '').trim().toUpperCase()).filter(Boolean))];
+        }
+        function salvarCarteira() { localStorage.setItem('qt_full_cart', JSON.stringify(carteira)); }
+        function registrarSincronizacao() {
             const agora = new Date().toLocaleString('pt-BR');
             localStorage.setItem('qt_last_sync_master', agora);
             document.getElementById('last-sync').innerText = agora;
-            document.getElementById('status-api').className = "h-2.5 w-2.5 rounded-full bg-emerald-500";
-            btn.disabled = false; icon.classList.remove('loading-spin');
         }
+        async function atualizarCotacoes() {
+            const tickers = tickersDaCarteira();
+            if (!tickers.length) { updateUI(); return { ok: true, atualizados: 0, falhas: [] }; }
 
+            let atualizados = 0;
+            const falhas = [];
+
+            // O plano atual permite apenas um ativo por requisição.
+            for (const solicitado of tickers) {
+                try {
+                    const resposta = await brapiGet('/api/v2/stocks/quote', { symbols: solicitado });
+                    const raw = resposta?.results?.[0];
+                    if (!raw) throw new Error('cotação não encontrada');
+                    const tickerRetornado = tickerDoResultado(raw) || solicitado;
+                    const info = dadosDoResultado(raw);
+                    const preco = numeroValido(info.regularMarketPrice);
+                    if (preco === null) throw new Error('preço indisponível');
+                    // Guarda pelo ticker solicitado e pelo ticker retornado, se houver mudança de código.
+                    precos[solicitado] = preco;
+                    precos[tickerRetornado] = preco;
+                    atualizados++;
+                } catch (e) {
+                    console.warn(`Cotação não atualizada para ${solicitado}:`, e);
+                    falhas.push(`${solicitado} (${e.message})`);
+                }
+                await new Promise(resolve => setTimeout(resolve, 150));
+            }
+
+            localStorage.setItem('qt_precos_cache', JSON.stringify(precos));
+            updateUI();
+            if (!atualizados && falhas.length) {
+                throw new Error(`nenhuma cotação foi atualizada. ${falhas.slice(0,3).join('; ')}`);
+            }
+            return { ok: true, atualizados, falhas };
+        }
+        async function atualizarFundamentos() {
+            const tickers = [...new Set(carteira
+                .filter(i => (i.cat || 'ACOES') === 'ACOES')
+                .map(i => String(i.t || '').trim().toUpperCase())
+                .filter(Boolean))];
+            if (!tickers.length) return { ok: true, atualizados: 0, ignorados: 0, falhas: [] };
+
+            let atualizados = 0;
+            const falhas = [];
+
+            // Consulta individual para evitar erro 400 causado por ticker inválido
+            // ou por limite de símbolos por requisição do plano contratado.
+            for (const solicitado of tickers) {
+                try {
+                    const resposta = await brapiGet('/api/v2/stocks/statistics', { symbols: solicitado });
+                    const raw = resposta?.results?.[0];
+                    if (!raw) throw new Error('sem dados fundamentalistas');
+
+                    const tickerRetornado = tickerDoResultado(raw) || solicitado;
+                    const info = dadosDoResultado(raw);
+                    const lpa = numeroValido(info.trailingEps ?? info.earningsPerShare);
+                    const vpa = numeroValido(info.bookValue ?? info.bookValuePerShare);
+                    const dy = numeroValido(info.dividendYield);
+                    const preco = numeroValido(precos[tickerRetornado] ?? precos[solicitado]);
+
+                    if (lpa === null && vpa === null) throw new Error('LPA e VPA indisponíveis');
+
+                    const itemDB = DB.ACOES[solicitado] || (DB.ACOES[solicitado] = {l:0,v:0,d:0});
+                    if (lpa !== null) itemDB.l = lpa;
+                    if (vpa !== null) itemDB.v = vpa;
+                    if (dy !== null && preco !== null) itemDB.d = dy * preco;
+
+                    carteira.forEach(item => {
+                        if (String(item.t).trim().toUpperCase() !== solicitado) return;
+                        if (lpa !== null) item.l = lpa;
+                        if (vpa !== null) item.v = vpa;
+                        if (dy !== null && preco !== null) item.d = dy * preco;
+                    });
+                    atualizados++;
+                } catch (e) {
+                    console.warn(`Fundamentos não atualizados para ${solicitado}:`, e);
+                    falhas.push(`${solicitado} (${e.message})`);
+                }
+                await new Promise(resolve => setTimeout(resolve, 150));
+            }
+
+            localStorage.setItem('qt_db_custom', JSON.stringify(DB));
+            salvarCarteira();
+            updateUI();
+
+            if (!atualizados && falhas.length) {
+                throw new Error(`nenhum fundamento foi atualizado. ${falhas.slice(0,3).join('; ')}`);
+            }
+            return { ok: true, atualizados, ignorados: falhas.length, falhas };
+        }
+        async function atualizarTudo(manual = false) {
+            if (!getToken()) { if (manual) alert('Insira sua API KEY da brapi.'); return false; }
+            try {
+                const cot = await atualizarCotacoes();
+                registrarSincronizacao();
+                const avisoCot = cot.falhas?.length ? ` ${cot.falhas.length} ativo(s) sem cotação.` : '';
+                setApiStatus(true, `${cot.atualizados} cotação(ões) atualizada(s).${avisoCot}`);
+                return true;
+            } catch (e) {
+                console.error('Erro na atualização:', e);
+                setApiStatus(false, `Falha na atualização: ${e.message}`);
+                if (manual) alert(`Não foi possível atualizar: ${e.message}`);
+                return false;
+            }
+        }
+        async function sincronizarDadosMestres(manual = false) {
+            if (!getToken()) { if (manual) alert('Insira sua API KEY da brapi.'); return false; }
+            const btn = document.getElementById('btn-sync-master');
+            const icon = document.getElementById('sync-icon-master');
+            btn.disabled = true; icon.classList.add('loading-spin');
+            try {
+                const cot = await atualizarCotacoes();
+                const fund = await atualizarFundamentos();
+                registrarSincronizacao();
+                const aviso = fund.ignorados ? ` ${fund.ignorados} ativo(s) sem fundamentos disponíveis.` : '';
+                setApiStatus(true, `${cot.atualizados} cotação(ões) e LPA/VPA de ${fund.atualizados} ação(ões) atualizados.${aviso} FIIs mantêm os valores informados.`);
+                return true;
+            } catch (e) {
+                console.error('Erro na sincronização:', e);
+                setApiStatus(false, `Falha na sincronização: ${e.message}`);
+                if (manual) alert(`Não foi possível sincronizar: ${e.message}`);
+                return false;
+            } finally {
+                btn.disabled = false; icon.classList.remove('loading-spin');
+            }
+        }
         function setAba(aba) {
             abaAtiva = aba;
             document.querySelectorAll('.tab-btn').forEach(el => { 
@@ -387,45 +526,61 @@
             updateUI();
         }
 
-        function toggleDrawer() { document.getElementById('market-drawer').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
-        function cleanNum(val) { if (!val) return 0; let n = String(val).replace(',', '.'); return parseFloat(n) || 0; }
-
-        async function fetchMercado() {
-            const apiInput = document.getElementById('api-token').value.trim();
-            const tk = apiInput || localStorage.getItem('qt_full_token');
-            
-            if(!tk) return;
-
-            const listaAtivos = [...new Set([
-                ...Object.keys(DB.ACOES), 
-                ...Object.keys(DB.FIIS), 
-                ...carteira.map(i => i.t)
-            ])].filter(t => t && t.trim() !== "").map(t => t.trim().toUpperCase());
-
-            const tks = listaAtivos.join(',');
-
-            try {
-                const r = await fetch(`https://brapi.dev/api/quote/${tks}?token=${tk}`);
-                const d = await r.json();
-                
-                if(d.results) {
-                    d.results.forEach(s => {
-                        precos[s.symbol] = s.regularMarketPrice;
-                        const cat = s.symbol.endsWith('11') ? 'FIIS' : 'ACOES';
-                        if(DB[cat][s.symbol]) {
-                            if(s.earningsPerShare) DB[cat][s.symbol].l = s.earningsPerShare;
-                            if(s.bookValue) DB[cat][s.symbol].v = s.bookValue;
-                        }
-                    });
-                    document.getElementById('status-api').className = "h-2.5 w-2.5 rounded-full bg-emerald-500";
-                    updateUI();
-                }
-            } catch (e) {
-                console.error("Erro na API:", e);
-                document.getElementById('status-api').className = "h-2.5 w-2.5 rounded-full bg-rose-500";
-            }
+        async function toggleDrawer() {
+            const drawer = document.getElementById('market-drawer');
+            const abrindo = !drawer.classList.contains('open');
+            drawer.classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('open');
+            if (abrindo) await atualizarRadar();
         }
+        function tickersDoRadar() {
+            if (abaAtiva === 'TUDO') return [...new Set([...Object.keys(DB.ACOES), ...Object.keys(DB.FIIS)])];
+            return Object.keys(DB[abaAtiva] || {});
+        }
+        async function atualizarRadar() {
+            const painel = document.getElementById('lista-mercado');
+            const tickers = tickersDoRadar();
+            const faltantes = tickers.filter(t => !Number.isFinite(Number(precos[t])));
+            updateUI();
+            if (!getToken() || !faltantes.length) return;
 
+            const aviso = document.createElement('div');
+            aviso.id = 'radar-loading';
+            aviso.className = 'p-3 mb-2 rounded-lg bg-brand-50 text-brand-700 text-xs font-semibold';
+            aviso.textContent = `Buscando ${faltantes.length} cotação(ões) do radar, uma por vez...`;
+            painel.prepend(aviso);
+
+            let atualizados = 0;
+            for (const solicitado of faltantes) {
+                try {
+                    const resposta = await brapiGet('/api/v2/stocks/quote', { symbols: solicitado });
+                    const raw = resposta?.results?.[0];
+                    const tickerRetornado = tickerDoResultado(raw) || solicitado;
+                    const preco = numeroValido(dadosDoResultado(raw).regularMarketPrice);
+                    if (preco !== null) {
+                        precos[solicitado] = preco;
+                        precos[tickerRetornado] = preco;
+                        atualizados++;
+                    }
+                } catch (e) {
+                    console.warn(`Radar não atualizado para ${solicitado}:`, e);
+                }
+                const status = document.getElementById('radar-loading');
+                if (status) status.textContent = `Radar: ${atualizados} de ${faltantes.length} nova(s) cotação(ões) recebida(s)...`;
+                await new Promise(resolve => setTimeout(resolve, 150));
+            }
+            localStorage.setItem('qt_precos_cache', JSON.stringify(precos));
+            updateUI();
+        }
+        function cleanNum(val) {
+            if (val === null || val === undefined || val === '') return 0;
+            let txt = String(val).trim().replace(/\s/g, '').replace(/R\$/gi, '');
+            if (txt.includes(',') && txt.includes('.')) txt = txt.replace(/\./g, '').replace(',', '.');
+            else txt = txt.replace(',', '.');
+            const n = Number(txt);
+            return Number.isFinite(n) ? n : 0;
+        }
+        async function fetchMercado() { return atualizarTudo(false); }
         function updateUI() {
             const container = document.getElementById('lista-ativos'); container.innerHTML = "";
             const ativos = abaAtiva === 'TUDO' ? carteira : carteira.filter(item => (item.cat || 'ACOES') === abaAtiva);
@@ -488,6 +643,21 @@
 
             let pat = 0; carteira.forEach(i => pat += (cleanNum(i.q) * (precos[i.t] || 0)));
             document.getElementById('total-pat').innerText = pat.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            const investido = carteira.reduce((acc,i) => acc + cleanNum(i.q) * cleanNum(i.p), 0);
+            const resultado = pat - investido;
+            const rent = investido > 0 ? (resultado / investido) * 100 : 0;
+            const proventos = carteira.reduce((acc,i) => acc + cleanNum(i.q) * cleanNum(i.d), 0);
+            const moeda = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+            document.getElementById('card-investido').innerText = moeda(investido);
+            document.getElementById('card-atual').innerText = moeda(pat);
+            const rEl = document.getElementById('card-resultado'); rEl.innerText = moeda(resultado); rEl.className = `mt-1 text-lg font-black font-mono ${resultado >= 0 ? 'text-emerald-700' : 'text-rose-700'}`;
+            const rentEl = document.getElementById('card-rentabilidade'); rentEl.innerText = `${rent.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}%`; rentEl.className = `mt-1 text-lg font-black font-mono ${rent >= 0 ? 'text-emerald-700' : 'text-rose-700'}`;
+            document.getElementById('card-proventos').innerText = moeda(proventos);
+            const acoes = carteira.filter(i => (i.cat || 'ACOES') === 'ACOES').reduce((a,i)=>a+cleanNum(i.q)*(precos[i.t]||0),0);
+            const fiis = carteira.filter(i => i.cat === 'FIIS').reduce((a,i)=>a+cleanNum(i.q)*(precos[i.t]||0),0);
+            const ap = pat > 0 ? acoes/pat*100 : 0, fp = pat > 0 ? fiis/pat*100 : 0;
+            document.getElementById('allocation-bar').innerHTML = pat > 0 ? `<div class="bg-brand-600" style="width:${ap}%" title="Ações ${ap.toFixed(1)}%"></div><div class="bg-emerald-500" style="width:${fp}%" title="FIIs ${fp.toFixed(1)}%"></div>` : '';
+            document.getElementById('allocation-label').innerText = pat > 0 ? `Ações ${ap.toFixed(1)}% · FIIs ${fp.toFixed(1)}%` : 'Sem dados';
             
             const b = document.getElementById('lista-mercado'); b.innerHTML = "";
             let tks = (abaAtiva === 'TUDO') ? [...new Set([...Object.keys(DB.ACOES), ...Object.keys(DB.FIIS)])] : Object.keys(DB[abaAtiva]);
@@ -496,7 +666,7 @@
                 <div class="py-2.5 px-1 flex justify-between items-center hover:bg-slate-50 rounded transition">
                     <div>
                         <b class="text-slate-900 text-xs">${t}</b>
-                        <div class="text-brand-600 font-mono text-[11px] font-bold">R$ ${(precos[t] || 0).toFixed(2)}</div>
+                        <div class="text-brand-600 font-mono text-[11px] font-bold">${Number.isFinite(Number(precos[t])) ? Number(precos[t]).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) : '<span class="text-slate-400">Aguardando cotação</span>'}</div>
                     </div>
                     <button onclick="document.getElementById('in-ticker').value='${t}'; autoPreencher('${t}'); toggleDrawer()" class="bg-brand-50 border border-brand-200 text-brand-700 hover:bg-brand-600 hover:text-white h-7 w-7 rounded-lg font-bold transition flex items-center justify-center text-sm">+</button>
                 </div>`;
@@ -504,22 +674,40 @@
         }
 
         function addAtivo() {
-            const t = document.getElementById('in-ticker').value.toUpperCase(), q = document.getElementById('in-qtd').value, p = document.getElementById('in-preco').value, l = document.getElementById('in-lpa').value, v = document.getElementById('in-vpa').value, d = document.getElementById('in-div').value, cat = document.getElementById('in-cat').value;
-            if(t && q) { 
-                carteira.push({t, q, p, l, v, d, cat}); 
-                localStorage.setItem('qt_full_cart', JSON.stringify(carteira)); fetchMercado();
-                ["in-ticker","in-qtd","in-preco","in-lpa","in-vpa","in-div"].forEach(id => { document.getElementById(id).value = ""; document.getElementById(id).style.borderColor = "#cbd5e1"; });
-            }
+            const t = document.getElementById('in-ticker').value.trim().toUpperCase();
+            const q = cleanNum(document.getElementById('in-qtd').value);
+            const p = cleanNum(document.getElementById('in-preco').value);
+            const l = cleanNum(document.getElementById('in-lpa').value);
+            const v = cleanNum(document.getElementById('in-vpa').value);
+            const d = cleanNum(document.getElementById('in-div').value);
+            const cat = document.getElementById('in-cat').value;
+            if (!/^[A-Z0-9]{4,12}$/.test(t)) return alert('Informe um ticker válido.');
+            if (!(q > 0)) return alert('Informe uma quantidade maior que zero.');
+            const registro = {t, q, p, l, v, d, cat};
+            if (editandoIndice === null) carteira.push(registro); else carteira[editandoIndice] = registro;
+            editandoIndice = null;
+            document.getElementById('btn-add').innerHTML = '<i class="fa-solid fa-plus"></i> Lançar Ativo';
+            salvarCarteira();
+            ["in-ticker","in-qtd","in-preco","in-lpa","in-vpa","in-div"].forEach(id => { document.getElementById(id).value = ''; document.getElementById(id).style.borderColor = '#cbd5e1'; });
+            updateUI();
+            atualizarTudo(false);
         }
-
         function editarAtivo(i) {
             const item = carteira[i];
-            document.getElementById('in-ticker').value = item.t; document.getElementById('in-qtd').value = item.q; document.getElementById('in-preco').value = item.p; document.getElementById('in-lpa').value = item.l; document.getElementById('in-vpa').value = item.v; document.getElementById('in-div').value = item.d; document.getElementById('in-cat').value = item.cat || 'ACOES';
-            carteira.splice(i, 1); updateUI(); autoPreencher(item.t);
+            if (!item) return;
+            editandoIndice = i;
+            document.getElementById('in-ticker').value = item.t;
+            document.getElementById('in-qtd').value = item.q;
+            document.getElementById('in-preco').value = item.p;
+            document.getElementById('in-lpa').value = item.l;
+            document.getElementById('in-vpa').value = item.v;
+            document.getElementById('in-div').value = item.d;
+            document.getElementById('in-cat').value = item.cat || 'ACOES';
+            document.getElementById('btn-add').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações';
+            document.getElementById('in-ticker').focus();
         }
-
-        function delAtivo(i) { if(confirm("Remover?")) { carteira.splice(i,1); localStorage.setItem('qt_full_cart', JSON.stringify(carteira)); updateUI(); } }
-        function salvarToken() { localStorage.setItem('qt_full_token', document.getElementById('api-token').value); fetchMercado(); }
+        function delAtivo(i) { if(confirm('Remover?')) { carteira.splice(i,1); editandoIndice = null; salvarCarteira(); updateUI(); } }
+        function salvarToken() { localStorage.setItem('qt_full_token', document.getElementById('api-token').value.trim()); atualizarTudo(true); }
         function salvarPerfil() { 
             const n = document.getElementById('u-name').value, c = document.getElementById('u-cpf').value;
             localStorage.setItem('qt_full_u', n); localStorage.setItem('qt_full_c', c);
@@ -534,8 +722,8 @@
             const hora = String(agora.getHours()).padStart(2, '0');
             const min = String(agora.getMinutes()).padStart(2, '0');
 
-            const dataHoraFmt = `${ano}_${dia}-${mes}-${ano}_${hora}h${min}`;
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(carteira));
+            const dataHoraFmt = `${dia}-${mes}-${ano}_${hora}h${min}`;
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(carteira, null, 2));
             const dl = document.createElement('a'); 
             
             dl.setAttribute("href", dataStr);
@@ -550,18 +738,17 @@
             reader.readAsText(input.files[0]);
         }
 
-        function configurarAtualizacaoAutomatica() {
-            const UMA_HORA = 3600000; 
-
-            setInterval(() => {
-                console.log("Iniciando atualização automática programada...");
-                const tk = localStorage.getItem('qt_full_token');
-                if (tk && tk.trim() !== "") {
-                    sincronizarDadosMestres();
-                }
-            }, UMA_HORA);
+        let autoTimer = null;
+        function aplicarAtualizacaoAutomatica() {
+            if (autoTimer) clearInterval(autoTimer);
+            const ms = Number(document.getElementById('auto-interval').value || 0);
+            localStorage.setItem('qt_auto_interval', String(ms));
+            const status = document.getElementById('auto-status');
+            if (!ms) { status.innerText = 'Atualização automática desativada.'; return; }
+            status.innerText = `Atualização ativa a cada ${document.getElementById('auto-interval').selectedOptions[0].text}. Funciona enquanto esta página estiver aberta.`;
+            autoTimer = setInterval(() => { if (!document.hidden) atualizarTudo(false); }, ms);
         }
-
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && Number(localStorage.getItem('qt_auto_interval') || 0) > 0) atualizarTudo(false); });
         window.onload = () => {
             document.getElementById('u-name').value = localStorage.getItem('qt_full_u') || ""; document.getElementById('u-cpf').value = localStorage.getItem('qt_full_c') || "";
             document.getElementById('last-sync').innerText = localStorage.getItem('qt_last_sync_master') || "Nunca";
@@ -572,7 +759,8 @@
             }
             setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR'); }, 1000);
             updateUI();
-            configurarAtualizacaoAutomatica();
+            document.getElementById('auto-interval').value = localStorage.getItem('qt_auto_interval') || '0';
+            aplicarAtualizacaoAutomatica();
         };
     </script>
 </body>
