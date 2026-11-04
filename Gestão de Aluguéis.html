@@ -181,51 +181,13 @@
         }
 
         /* Popup pontual para copiar mensagem do WhatsApp */
-        #whatsapp-popup {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            background: rgba(15, 23, 42, 0.68);
-        }
-        #whatsapp-popup.ativo { display: flex; }
-        .whatsapp-popup-box {
-            width: min(620px, 100%);
-            padding: 1.25rem;
-            border-radius: 0.9rem;
-            background: #fff;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-        }
-        #whatsapp-texto {
-            width: 100%;
-            min-height: 300px;
-            margin-top: 0.75rem;
-            padding: 0.85rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.55rem;
-            resize: vertical;
-            font: 14px/1.5 Arial, sans-serif;
-        }
-        .whatsapp-popup-botoes {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-            gap: 0.6rem;
-            margin-top: 0.85rem;
-        }
-        .whatsapp-popup-botoes button {
-            padding: 0.65rem 1rem;
-            border: 0;
-            border-radius: 0.5rem;
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-        }
-        .btn-whatsapp-copiar { background: #16a34a; }
-        .btn-whatsapp-fechar { background: #475569; }
+        #whatsapp-popup { display:none; position:fixed; inset:0; z-index:1000; align-items:center; justify-content:center; padding:1rem; background:rgba(15,23,42,.68); }
+        #whatsapp-popup.ativo { display:flex; }
+        .whatsapp-popup-box { width:min(620px,100%); padding:1.25rem; border-radius:.9rem; background:#fff; box-shadow:0 20px 50px rgba(0,0,0,.25); }
+        #whatsapp-texto { width:100%; min-height:300px; margin-top:.75rem; padding:.85rem; border:1px solid #cbd5e1; border-radius:.55rem; resize:vertical; font:14px/1.5 Arial,sans-serif; }
+        .whatsapp-popup-botoes { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.6rem; margin-top:.85rem; }
+        .whatsapp-popup-botoes button { padding:.65rem 1rem; border:0; border-radius:.5rem; color:#fff; font-weight:700; cursor:pointer; }
+        .btn-whatsapp-copiar { background:#16a34a; } .btn-whatsapp-fechar { background:#475569; }
 
         /* Estilos de Impressão */
         #print-area { display: none; }
@@ -357,20 +319,7 @@
     </main>
 
     <!-- Popup de mensagem para WhatsApp -->
-    <div id="whatsapp-popup" class="no-print" role="dialog" aria-modal="true" aria-labelledby="whatsapp-popup-titulo">
-        <div class="whatsapp-popup-box">
-            <div class="flex items-center justify-between gap-3">
-                <h3 id="whatsapp-popup-titulo" class="text-lg font-bold text-slate-900">Mensagem para WhatsApp</h3>
-                <button type="button" onclick="fecharWhatsAppPopup()" class="text-slate-500 hover:text-slate-900 text-xl" aria-label="Fechar">&times;</button>
-            </div>
-            <p class="mt-1 text-xs text-slate-500">Copie o texto abaixo e cole na conversa desejada.</p>
-            <textarea id="whatsapp-texto" readonly></textarea>
-            <div class="whatsapp-popup-botoes">
-                <button type="button" class="btn-whatsapp-fechar" onclick="fecharWhatsAppPopup()">Fechar</button>
-                <button type="button" class="btn-whatsapp-copiar" onclick="copiarTextoWhatsApp()">Copiar texto</button>
-            </div>
-        </div>
-    </div>
+    <div id="whatsapp-popup" class="no-print" role="dialog" aria-modal="true" aria-labelledby="whatsapp-popup-titulo"><div class="whatsapp-popup-box"><div class="flex items-center justify-between gap-3"><h3 id="whatsapp-popup-titulo" class="text-lg font-bold text-slate-900">Mensagem para WhatsApp</h3><button type="button" onclick="fecharWhatsAppPopup()" class="text-slate-500 hover:text-slate-900 text-xl" aria-label="Fechar">&times;</button></div><p class="mt-1 text-xs text-slate-500">Copie o texto abaixo e cole na conversa desejada.</p><textarea id="whatsapp-texto" readonly></textarea><div class="whatsapp-popup-botoes"><button type="button" class="btn-whatsapp-fechar" onclick="fecharWhatsAppPopup()">Fechar</button><button type="button" class="btn-whatsapp-copiar" onclick="copiarTextoWhatsApp()">Copiar texto</button></div></div></div>
 
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500 no-print">
@@ -425,7 +374,7 @@
                     <button class="btn-demo-row border border-amber-600 text-amber-700 hover:bg-amber-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="gerarDemonstrativo(this.closest('tr').rowIndex - 1)">Demonstrativo</button>
                     <button class="btn-demo-row border border-purple-600 text-purple-700 hover:bg-purple-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="gerarExtratoIndividual(this.closest('tr').rowIndex - 1)">Extrato Anual</button>
                     <button class="btn-demo-row border border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="gerarRecibo(this.closest('tr').rowIndex - 1)">Recibo</button>
-                    <button class="btn-demo-row border border-red-600 text-red-700 hover:bg-red-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="abrirGmail(this.closest('tr').rowIndex - 1)"><i class="fa-solid fa-envelope"></i> Gmail</button>  
+                    <button class="btn-demo-row border border-red-600 text-red-700 hover:bg-red-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="abrirGmail(this.closest('tr').rowIndex - 1)"><i class="fa-solid fa-envelope"></i> Gmail</button>
                     <button class="btn-demo-row border border-green-600 text-green-700 hover:bg-green-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="abrirWhatsAppPopup(this.closest('tr').rowIndex - 1)"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
                     <div class="row-controls flex gap-1 justify-center items-center mt-1">
                         <button class="btn-icon add text-brand-600 hover:bg-brand-50 p-1.5 rounded text-sm transition" title="Adicionar Linha" onclick="addRow(this)"><i class="fa-solid fa-circle-plus"></i></button>
@@ -618,45 +567,17 @@
     function clearFullYear() { if(confirm(`Zerar dados de ${currentYear}?`)){ for(let i=0; i<12; i++) localStorage.removeItem(`data_${currentYear}_mes_${i}`); location.reload(); } }
 
     function abrirWhatsAppPopup(rowIdx) {
-        saveData(false);
-        const rows = document.querySelectorAll('#rent-rows tr');
-        if (!rows[rowIdx]) return;
-        const row = rows[rowIdx];
-        const nome = row.querySelector('.in-name').value.trim();
-        const dataPagamento = row.querySelector('.in-date').value;
-        const aluguel = parseFloat(row.querySelector('.in-val').value) || 0;
-        const extras = parseFloat(row.querySelector('.in-extra').value) || 0;
-        const subtotal = aluguel + extras;
-        if (!nome) return alert('Preencha o nome do inquilino.');
-        if (!dataPagamento) return alert('Preencha a Data de Pagamento.');
-        const dataFormatada = dataPagamento.split('-').reverse().join('/');
-        const valorFormatado = subtotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-        const competencia = `${meses[currentMonthIdx]} / ${currentYear}`;
-        const horaAtual = new Date().getHours();
-        const saudacao = horaAtual < 12 ? 'bom dia' : horaAtual < 18 ? 'boa tarde' : 'boa noite';
-        const texto = `${nome}, ${saudacao} 🍀\n\n` +
-            `Segue em anexo o demonstrativo de pagamento de aluguel.\n\n` +
-            `Competência: ${competencia}\nData de pagamento: ${dataFormatada}\nValor a pagar: ${valorFormatado}\n\n` +
-            `Em caso de dúvidas, fico à disposição.\n\n` +
-            `Obrigado Sempre !!✨🙌`;
-        document.getElementById('whatsapp-texto').value = texto;
-        document.getElementById('whatsapp-popup').classList.add('ativo');
+        saveData(false); const rows=document.querySelectorAll('#rent-rows tr'); if(!rows[rowIdx]) return;
+        const row=rows[rowIdx], nome=row.querySelector('.in-name').value.trim(), dataPagamento=row.querySelector('.in-date').value;
+        const subtotal=(parseFloat(row.querySelector('.in-val').value)||0)+(parseFloat(row.querySelector('.in-extra').value)||0);
+        if(!nome) return alert('Preencha o nome do inquilino.'); if(!dataPagamento) return alert('Preencha a Data de Pagamento.');
+        const dataFormatada=dataPagamento.split('-').reverse().join('/'), valorFormatado=subtotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}), competencia=`${meses[currentMonthIdx]} / ${currentYear}`;
+        const horaAtual=new Date().getHours(), saudacao=horaAtual<12?'bom dia':horaAtual<18?'boa tarde':'boa noite';
+        const texto=`${nome}, ${saudacao} 🍀\n\n`+`Segue abaixo o demonstrativo de pagamento de aluguel.\n\n`+`Competência: ${competencia}\nData de pagamento: ${dataFormatada}\nValor a pagar: ${valorFormatado}\n\n`+`Em caso de dúvidas, fico à disposição.\n\n`+`Obrigado Sempre !!✨🙌`;
+        document.getElementById('whatsapp-texto').value=texto; document.getElementById('whatsapp-popup').classList.add('ativo');
     }
-    function fecharWhatsAppPopup() {
-        document.getElementById('whatsapp-popup').classList.remove('ativo');
-    }
-    async function copiarTextoWhatsApp() {
-        const campo = document.getElementById('whatsapp-texto');
-        try {
-            await navigator.clipboard.writeText(campo.value);
-            alert('Texto copiado. Agora cole no WhatsApp.');
-        } catch (erro) {
-            campo.focus();
-            campo.select();
-            document.execCommand('copy');
-            alert('Texto copiado. Agora cole no WhatsApp.');
-        }
-    }
+    function fecharWhatsAppPopup(){ document.getElementById('whatsapp-popup').classList.remove('ativo'); }
+    async function copiarTextoWhatsApp(){ const campo=document.getElementById('whatsapp-texto'); try{await navigator.clipboard.writeText(campo.value); alert('Texto copiado. Agora cole no WhatsApp.');}catch(erro){campo.focus();campo.select();document.execCommand('copy');alert('Texto copiado. Agora cole no WhatsApp.');} }
 
     function abrirGmail(rowIdx) {
         saveData(false);
@@ -683,7 +604,7 @@
         const assunto = `Demonstrativo de pagamento de aluguel - ${competencia}`;
         const horaEmail = new Date().getHours();
         const saudacaoEmail = horaEmail < 12 ? 'bom dia' : horaEmail < 18 ? 'boa tarde' : 'boa noite';
-        const corpo = `Prezado(a) ${nome}, ${saudacaoEmail} 🍀\n\n` +
+        const corpo = `${nome}, ${saudacaoEmail} 🍀\n\n` +
             `Segue em anexo o demonstrativo de pagamento de aluguel.\n\n` +
             `Competência: ${competencia}\nData de pagamento: ${dataFormatada}\nValor a pagar: ${valorFormatado}\n\n` +
             `Em caso de dúvidas, fico à disposição.\n\n` +
