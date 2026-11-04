@@ -25,7 +25,7 @@ O sistema possui integração com os seguintes módulos:
 
 | Módulo | Função |
 |---|---|
-| Gestão de Aluguéis | Controle de receitas e contratos de locação |
+| Gestão de Aluguéis | Controle mensal e anual de aluguéis, documentos, Gmail, WhatsApp e backup em JSON |
 | Imóveis & IPTU & Serviços | Administração patrimonial de imóveis |
 | Gestão de Contratos | Controle contratual |
 | Gestão Financeira Global | Consolidação financeira |
@@ -37,15 +37,80 @@ O sistema possui integração com os seguintes módulos:
 
 ---
 
+## Novas Funções da Gestão de Aluguéis
+
+O módulo **Gestão de Aluguéis** inclui os seguintes recursos:
+
+### Cadastro e organização
+
+- Cadastro mensal de inquilino, e-mail, data de pagamento, reajuste, CDC/IPTU, destino do pagamento, aluguel, extras e descrição do extra.
+- Inclusão, exclusão e reordenação de registros.
+- Cópia dos dados do mês anterior, incluindo o campo de e-mail.
+- Campos organizados em linhas, com as ações em uma linha própria.
+- Cálculo automático do subtotal de aluguel e extras.
+- Cálculo do total acumulado anual.
+
+### Gmail
+
+- Botão **Gmail** nas ações de cada registro.
+- Abertura de mensagem com destinatários, assunto e corpo preenchidos automaticamente.
+- Suporte a vários destinatários separados por ponto e vírgula.
+- Validação individual dos endereços de e-mail.
+- Saudação automática conforme o horário de emissão.
+- Inclusão automática da competência, data de pagamento e valor a pagar.
+- Texto preparado para inclusão manual da assinatura padrão configurada no Gmail.
+- O PDF do demonstrativo deve ser anexado manualmente antes do envio.
+
+### WhatsApp
+
+- Botão **WhatsApp** nas ações de cada registro.
+- Popup com a mensagem pronta para conferência.
+- Botão **Copiar texto** para colar a mensagem na conversa desejada.
+- Saudação automática conforme o horário:
+  - 00h00 até 12h00: **bom dia**;
+  - 12h01 até 17h59: **boa tarde**;
+  - 18h00 até 23h59: **boa noite**.
+- A mensagem começa com **🙋🏻‍♂️Olá**, sem exibir o nome do inquilino.
+- Inclusão automática da competência, data de pagamento e valor a pagar.
+
+### Documentos e relatórios
+
+- Demonstrativo individual de aluguel.
+- Recibo.
+- Extrato anual individual para declaração de Imposto de Renda.
+- Relatório mensal de recebimentos.
+- Relatório anual consolidado.
+- Impressão e salvamento em PDF pela janela de impressão do navegador.
+
+### Backup e compatibilidade
+
+- Exportação dos dados em arquivo JSON.
+- Importação de backups gerados pelo sistema.
+- Inclusão dos e-mails no backup mensal.
+- Compatibilidade com backups antigos sem o campo de e-mail. Nesse caso, os demais dados são restaurados e o e-mail permanece vazio.
+- Armazenamento local organizado por ano e mês utilizando LocalStorage.
+
+### Observações operacionais
+
+- A abertura do Gmail depende da permissão de pop-ups do navegador.
+- A cópia do texto do WhatsApp depende da permissão de acesso à área de transferência. O sistema possui um método alternativo de cópia.
+- A impressão e a geração de PDF dependem dos recursos de impressão do navegador.
+- Tailwind CSS, Font Awesome e Google Fonts são carregados por CDN e dependem de conexão com a internet para carregar integralmente o estilo e os ícones.
+
+---
+
 ## Tecnologias Utilizadas
 
 - HTML5
 - CSS3
 - JavaScript Vanilla
+- Tailwind CSS via CDN
+- Font Awesome via CDN
 - Google Fonts
   - Cinzel
   - Montserrat
 - LocalStorage para persistência de dados locais
+- JSON para exportação e importação de backups
 
 ---
 
@@ -89,10 +154,11 @@ Todos os dados são armazenados localmente no navegador do usuário.
 
 O sistema:
 
-- Não utiliza servidores externos.
-- Não realiza sincronização em nuvem.
-- Não envia informações para terceiros.
-- Depende exclusivamente do navegador utilizado para armazenar os dados.
+- Não utiliza servidor próprio nem banco de dados remoto para armazenar os registros.
+- Não realiza sincronização automática em nuvem.
+- Mantém os dados operacionais no LocalStorage do navegador.
+- Utiliza recursos visuais externos por CDN, como Tailwind CSS, Font Awesome e Google Fonts.
+- Abre serviços externos somente quando o usuário aciona funções específicas, como Gmail.
 
 ---
 
