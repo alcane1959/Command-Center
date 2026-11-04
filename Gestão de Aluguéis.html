@@ -572,8 +572,9 @@
         const subtotal=(parseFloat(row.querySelector('.in-val').value)||0)+(parseFloat(row.querySelector('.in-extra').value)||0);
         if(!nome) return alert('Preencha o nome do inquilino.'); if(!dataPagamento) return alert('Preencha a Data de Pagamento.');
         const dataFormatada=dataPagamento.split('-').reverse().join('/'), valorFormatado=subtotal.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}), competencia=`${meses[currentMonthIdx]} / ${currentYear}`;
-        const horaAtual=new Date().getHours(), saudacao=horaAtual<12?'bom dia':horaAtual<18?'boa tarde':'boa noite';
-        const texto=`${nome}, ${saudacao} 🍀\n\n`+`Segue abaixo o demonstrativo de pagamento de aluguel.\n\n`+`Competência: ${competencia}\nData de pagamento: ${dataFormatada}\nValor a pagar: ${valorFormatado}\n\n`+`Em caso de dúvidas, fico à disposição.\n\n`+`Obrigado Sempre !!✨🙌`;
+        const agora=new Date(), minutosAtuais=agora.getHours()*60+agora.getMinutes();
+        const saudacao=minutosAtuais<=720?'bom dia':minutosAtuais<1080?'boa tarde':'boa noite';
+        const texto=`🙋🏻‍♂️Olá, ${saudacao} 🍀\n\n`+`Segue abaixo o demonstrativo de pagamento de aluguel.\n\n`+`Competência: ${competencia}\nData de pagamento: ${dataFormatada}\nValor a pagar: ${valorFormatado}\n\n`+`Em caso de dúvidas, fico à disposição.\n\n`+`Obrigado Sempre !!✨🙌`;
         document.getElementById('whatsapp-texto').value=texto; document.getElementById('whatsapp-popup').classList.add('ativo');
     }
     function fecharWhatsAppPopup(){ document.getElementById('whatsapp-popup').classList.remove('ativo'); }
