@@ -76,6 +76,157 @@
         }
         .row-tenant-title:empty { display: none; }
 
+        /* Campos de cada inquilino distribuídos em duas linhas */
+        #main-table thead { display: none; }
+        #rent-rows {
+            display: block;
+            padding: 0.75rem;
+            background: #f8fafc;
+        }
+        #rent-rows tr {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(60px, 1fr));
+            gap: 0.65rem;
+            margin-bottom: 1rem;
+            padding: 0.9rem;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.85rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+        }
+        #rent-rows tr td {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            min-width: 0;
+            padding: 0 !important;
+        }
+        #rent-rows tr td::before {
+            display: block;
+            margin: 0 0 0.3rem 0.1rem;
+            color: #475569;
+            font-size: 0.65rem;
+            line-height: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        #rent-rows tr td:nth-child(1)::before { content: "Ordem"; }
+        #rent-rows tr td:nth-child(2)::before { content: "Inquilino"; }
+        #rent-rows tr td:nth-child(3)::before { content: "E-mail"; }
+        #rent-rows tr td:nth-child(4)::before { content: "Data Pagto"; }
+        #rent-rows tr td:nth-child(5)::before { content: "Reajuste"; }
+        #rent-rows tr td:nth-child(6)::before { content: "CDC IPTU"; }
+        #rent-rows tr td:nth-child(7)::before { content: "Destino"; }
+        #rent-rows tr td:nth-child(8)::before { content: "Aluguel"; }
+        #rent-rows tr td:nth-child(9)::before { content: "Extras"; }
+        #rent-rows tr td:nth-child(10)::before { content: "Descrição do Extra"; }
+        #rent-rows tr td:nth-child(11)::before { content: "Subtotal"; }
+        #rent-rows tr td:nth-child(12)::before { content: "Ações"; }
+
+        /* Dimensionamento individual dos campos */
+        #rent-rows tr td:nth-child(1)  { grid-column: span 1; } /* Ordem */
+        #rent-rows tr td:nth-child(2)  { grid-column: span 3; } /* Inquilino */
+        #rent-rows tr td:nth-child(3)  { grid-column: span 3; } /* E-mail */
+        #rent-rows tr td:nth-child(4)  { grid-column: span 2; } /* Data Pagto */
+        #rent-rows tr td:nth-child(5)  { grid-column: span 1; } /* Reajuste */
+        #rent-rows tr td:nth-child(6)  { grid-column: span 2; } /* CDC IPTU */
+        #rent-rows tr td:nth-child(7)  { grid-column: 2 / 5; } /* Destino */
+        #rent-rows tr td:nth-child(8)  { grid-column: 5 / 12; grid-row: 2; width: 120px; justify-self: start; } /* Aluguel */
+        #rent-rows tr td:nth-child(9)  { grid-column: 5 / 12; grid-row: 2; width: 120px; justify-self: start; margin-left: 130px; } /* Extras */
+        #rent-rows tr td:nth-child(10) { grid-column: 5 / 11; grid-row: 2; min-width: 0; margin-left: 260px; } /* Descrição do Extra */
+        #rent-rows tr td:nth-child(11) { grid-column: 11 / 13; grid-row: 2; } /* Subtotal ampliado na segunda linha */
+
+        /* Ações ocupam sozinhas a terceira linha */
+        #rent-rows tr td:nth-child(12) {
+            grid-column: 1 / -1;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 0.75rem !important;
+        }
+        #rent-rows tr td:nth-child(12) > div {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(120px, 1fr)) auto;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        #rent-rows tr td:nth-child(12) .row-controls {
+            margin-top: 0 !important;
+            white-space: nowrap;
+        }
+        #rent-rows .row-tenant-title { display: none !important; }
+        #rent-rows input { min-height: 2.35rem; }
+        #rent-rows .row-total {
+            min-height: 2.35rem;
+            justify-content: center;
+            padding: 0.55rem 0.7rem !important;
+            border: 1px solid #bae6fd;
+            border-radius: 0.4rem;
+            background: #f0f9ff;
+        }
+        @media (max-width: 900px) {
+            #rent-rows tr { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #rent-rows tr td:not(:nth-child(12)) { grid-column: span 1; }
+            #rent-rows tr td:nth-child(8),
+            #rent-rows tr td:nth-child(9) { width: auto; justify-self: stretch; margin-left: 0; grid-row: auto; }
+            #rent-rows tr td:nth-child(10) { margin-left: 0; grid-row: auto; }
+            #rent-rows tr td:nth-child(11) { grid-row: auto; }
+            #rent-rows tr td:nth-child(12) > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #rent-rows tr td:nth-child(12) .row-controls { grid-column: 1 / -1; }
+        }
+        @media (max-width: 520px) {
+            #rent-rows tr { grid-template-columns: 1fr; }
+            #rent-rows tr td:not(:nth-child(12)) { grid-column: 1; }
+            #rent-rows tr td:nth-child(12) > div { grid-template-columns: 1fr; }
+            #rent-rows tr td:nth-child(12) .row-controls { grid-column: auto; }
+        }
+
+        /* Popup pontual para copiar mensagem do WhatsApp */
+        #whatsapp-popup {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background: rgba(15, 23, 42, 0.68);
+        }
+        #whatsapp-popup.ativo { display: flex; }
+        .whatsapp-popup-box {
+            width: min(620px, 100%);
+            padding: 1.25rem;
+            border-radius: 0.9rem;
+            background: #fff;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        }
+        #whatsapp-texto {
+            width: 100%;
+            min-height: 300px;
+            margin-top: 0.75rem;
+            padding: 0.85rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.55rem;
+            resize: vertical;
+            font: 14px/1.5 Arial, sans-serif;
+        }
+        .whatsapp-popup-botoes {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.6rem;
+            margin-top: 0.85rem;
+        }
+        .whatsapp-popup-botoes button {
+            padding: 0.65rem 1rem;
+            border: 0;
+            border-radius: 0.5rem;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .btn-whatsapp-copiar { background: #16a34a; }
+        .btn-whatsapp-fechar { background: #475569; }
+
         /* Estilos de Impressão */
         #print-area { display: none; }
 
@@ -180,6 +331,7 @@
                             <tr class="bg-slate-900 text-white font-bold uppercase tracking-wider text-[11px]">
                                 <th class="py-3 px-3 text-center w-[50px]">Ordem</th>
                                 <th class="py-3 px-3 w-[18%]">Inquilino</th>
+                                <th class="py-3 px-3 w-[18%]">E-mail</th>
                                 <th class="py-3 px-3 w-[12%]">Data Pagto</th>
                                 <th class="py-3 px-3 w-[8%]">Reajuste</th>
                                 <th class="py-3 px-3 w-[10%]">CDC IPTU</th>
@@ -203,6 +355,22 @@
         <!-- Área de Impressão -->
         <div id="print-area"></div>
     </main>
+
+    <!-- Popup de mensagem para WhatsApp -->
+    <div id="whatsapp-popup" class="no-print" role="dialog" aria-modal="true" aria-labelledby="whatsapp-popup-titulo">
+        <div class="whatsapp-popup-box">
+            <div class="flex items-center justify-between gap-3">
+                <h3 id="whatsapp-popup-titulo" class="text-lg font-bold text-slate-900">Mensagem para WhatsApp</h3>
+                <button type="button" onclick="fecharWhatsAppPopup()" class="text-slate-500 hover:text-slate-900 text-xl" aria-label="Fechar">&times;</button>
+            </div>
+            <p class="mt-1 text-xs text-slate-500">Copie o texto abaixo e cole na conversa desejada.</p>
+            <textarea id="whatsapp-texto" readonly></textarea>
+            <div class="whatsapp-popup-botoes">
+                <button type="button" class="btn-whatsapp-fechar" onclick="fecharWhatsAppPopup()">Fechar</button>
+                <button type="button" class="btn-whatsapp-copiar" onclick="copiarTextoWhatsApp()">Copiar texto</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500 no-print">
@@ -243,6 +411,7 @@
                 </div>
             </td>
             <td class="p-2"><div class="row-tenant-title"></div><input type="text" class="in-name w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none transition" oninput="updateRowTitle(this); saveData(false)"></td>
+            <td class="p-2"><input type="text" class="in-email w-full px-2 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs text-slate-700 focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none transition" placeholder="email1@gmail.com; email2@gmail.com" oninput="saveData(false)"></td>
             <td class="p-2"><input type="date" class="in-date w-full px-2 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs text-slate-700 focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none transition" oninput="saveData(false)"></td>
             <td class="p-2"><input type="text" class="in-reajuste w-full px-2 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs text-slate-700 focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none transition" placeholder="Ex: Mar" oninput="saveData(false)"></td>
             <td class="p-2"><input type="text" class="in-cdc w-full px-2 py-1.5 bg-slate-50 border border-slate-300 rounded-md text-xs text-slate-700 focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none transition" placeholder="000-0" oninput="saveData(false)"></td>
@@ -256,6 +425,8 @@
                     <button class="btn-demo-row border border-amber-600 text-amber-700 hover:bg-amber-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="gerarDemonstrativo(this.closest('tr').rowIndex - 1)">Demonstrativo</button>
                     <button class="btn-demo-row border border-purple-600 text-purple-700 hover:bg-purple-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="gerarExtratoIndividual(this.closest('tr').rowIndex - 1)">Extrato Anual</button>
                     <button class="btn-demo-row border border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="gerarRecibo(this.closest('tr').rowIndex - 1)">Recibo</button>
+                    <button class="btn-demo-row border border-red-600 text-red-700 hover:bg-red-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="abrirGmail(this.closest('tr').rowIndex - 1)"><i class="fa-solid fa-envelope"></i> Gmail</button>  
+                    <button class="btn-demo-row border border-green-600 text-green-700 hover:bg-green-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="abrirWhatsAppPopup(this.closest('tr').rowIndex - 1)"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
                     <div class="row-controls flex gap-1 justify-center items-center mt-1">
                         <button class="btn-icon add text-brand-600 hover:bg-brand-50 p-1.5 rounded text-sm transition" title="Adicionar Linha" onclick="addRow(this)"><i class="fa-solid fa-circle-plus"></i></button>
                         <button class="btn-icon save text-emerald-600 hover:bg-emerald-50 p-1.5 rounded text-sm transition" title="Salvar" onclick="saveData(true)"><i class="fa-solid fa-circle-check"></i></button>
@@ -313,7 +484,7 @@
 
     function saveData(verbose) {
         const data = Array.from(document.querySelectorAll('#rent-rows tr')).map(row => ({
-            n: row.querySelector('.in-name').value, d: row.querySelector('.in-date').value,
+            n: row.querySelector('.in-name').value, email: row.querySelector('.in-email').value, d: row.querySelector('.in-date').value,
             r: row.querySelector('.in-reajuste').value, v: row.querySelector('.in-val').value, 
             e: row.querySelector('.in-extra').value, ed: row.querySelector('.in-extra-desc').value, dest: row.querySelector('.in-destino').value,
             cdc: row.querySelector('.in-cdc').value
@@ -335,6 +506,7 @@
                 row.innerHTML = createRowHTML();
                 row.querySelector('.in-name').value = d.n || '';
                 updateRowTitle(row.querySelector('.in-name')); 
+                row.querySelector('.in-email').value = d.email || '';
                 row.querySelector('.in-date').value = d.d || ''; 
                 row.querySelector('.in-reajuste').value = d.r || ''; 
                 row.querySelector('.in-val').value = d.v || ''; 
@@ -380,6 +552,7 @@
                 row.innerHTML = createRowHTML(); 
                 row.querySelector('.in-name').value = d.n || '';
                 updateRowTitle(row.querySelector('.in-name')); 
+                row.querySelector('.in-email').value = d.email || '';
                 row.querySelector('.in-reajuste').value = d.r || ''; 
                 row.querySelector('.in-cdc').value = d.cdc || ''; 
                 row.querySelector('.in-val').value = d.v || ''; 
@@ -443,6 +616,83 @@
     }
     
     function clearFullYear() { if(confirm(`Zerar dados de ${currentYear}?`)){ for(let i=0; i<12; i++) localStorage.removeItem(`data_${currentYear}_mes_${i}`); location.reload(); } }
+
+    function abrirWhatsAppPopup(rowIdx) {
+        saveData(false);
+        const rows = document.querySelectorAll('#rent-rows tr');
+        if (!rows[rowIdx]) return;
+        const row = rows[rowIdx];
+        const nome = row.querySelector('.in-name').value.trim();
+        const dataPagamento = row.querySelector('.in-date').value;
+        const aluguel = parseFloat(row.querySelector('.in-val').value) || 0;
+        const extras = parseFloat(row.querySelector('.in-extra').value) || 0;
+        const subtotal = aluguel + extras;
+        if (!nome) return alert('Preencha o nome do inquilino.');
+        if (!dataPagamento) return alert('Preencha a Data de Pagamento.');
+        const dataFormatada = dataPagamento.split('-').reverse().join('/');
+        const valorFormatado = subtotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        const competencia = `${meses[currentMonthIdx]} / ${currentYear}`;
+        const horaAtual = new Date().getHours();
+        const saudacao = horaAtual < 12 ? 'bom dia' : horaAtual < 18 ? 'boa tarde' : 'boa noite';
+        const texto = `${nome}, ${saudacao} 🍀\n\n` +
+            `Segue em anexo o demonstrativo de pagamento de aluguel.\n\n` +
+            `Competência: ${competencia}\nData de pagamento: ${dataFormatada}\nValor a pagar: ${valorFormatado}\n\n` +
+            `Em caso de dúvidas, fico à disposição.\n\n` +
+            `Obrigado Sempre !!✨🙌`;
+        document.getElementById('whatsapp-texto').value = texto;
+        document.getElementById('whatsapp-popup').classList.add('ativo');
+    }
+    function fecharWhatsAppPopup() {
+        document.getElementById('whatsapp-popup').classList.remove('ativo');
+    }
+    async function copiarTextoWhatsApp() {
+        const campo = document.getElementById('whatsapp-texto');
+        try {
+            await navigator.clipboard.writeText(campo.value);
+            alert('Texto copiado. Agora cole no WhatsApp.');
+        } catch (erro) {
+            campo.focus();
+            campo.select();
+            document.execCommand('copy');
+            alert('Texto copiado. Agora cole no WhatsApp.');
+        }
+    }
+
+    function abrirGmail(rowIdx) {
+        saveData(false);
+        const rows = document.querySelectorAll('#rent-rows tr');
+        if (!rows[rowIdx]) return;
+        const row = rows[rowIdx];
+        const nome = row.querySelector('.in-name').value.trim();
+        const emailTexto = row.querySelector('.in-email').value.trim();
+        const emails = emailTexto.split(';').map(item => item.trim()).filter(Boolean);
+        const dataPagamento = row.querySelector('.in-date').value;
+        const aluguel = parseFloat(row.querySelector('.in-val').value) || 0;
+        const extras = parseFloat(row.querySelector('.in-extra').value) || 0;
+        const subtotal = aluguel + extras;
+        const locador = document.getElementById('locador-nome').value.trim() || 'Locador';
+        if (!nome) return alert('Preencha o nome do inquilino.');
+        if (emails.length === 0) return alert('Preencha pelo menos um e-mail do inquilino.');
+        const emailInvalido = emails.find(item => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item));
+        if (emailInvalido) return alert('E-mail inválido: ' + emailInvalido + '. Separe os destinatários com ponto e vírgula.');
+        const destinatarios = emails.join(',');
+        if (!dataPagamento) return alert('Preencha a Data de Pagamento.');
+        const dataFormatada = dataPagamento.split('-').reverse().join('/');
+        const valorFormatado = subtotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        const competencia = `${meses[currentMonthIdx]} / ${currentYear}`;
+        const assunto = `Demonstrativo de pagamento de aluguel - ${competencia}`;
+        const horaEmail = new Date().getHours();
+        const saudacaoEmail = horaEmail < 12 ? 'bom dia' : horaEmail < 18 ? 'boa tarde' : 'boa noite';
+        const corpo = `Prezado(a) ${nome}, ${saudacaoEmail} 🍀\n\n` +
+            `Segue em anexo o demonstrativo de pagamento de aluguel.\n\n` +
+            `Competência: ${competencia}\nData de pagamento: ${dataFormatada}\nValor a pagar: ${valorFormatado}\n\n` +
+            `Em caso de dúvidas, fico à disposição.\n\n` +
+            `Obrigado sempre !! ✨🙌`;
+        const urlGmail = 'https://mail.google.com/mail/?view=cm&fs=1' +
+            '&to=' + encodeURIComponent(destinatarios) + '&su=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(corpo);
+        const janela = window.open(urlGmail, '_blank');
+        if (!janela) alert('O navegador bloqueou a abertura do Gmail. Permita pop-ups para este arquivo.');
+    }
 
     function gerarDemonstrativo(rowIdx) {
         saveData(false);
