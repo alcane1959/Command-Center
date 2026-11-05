@@ -145,7 +145,7 @@
         }
         #rent-rows tr td:nth-child(12) > div {
             display: grid;
-            grid-template-columns: repeat(5, minmax(120px, 1fr)) auto;
+            grid-template-columns: repeat(7, minmax(120px, 1fr)) auto;
             align-items: center;
             gap: 0.5rem;
         }
@@ -376,6 +376,8 @@
                     <button class="btn-demo-row border border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="gerarRecibo(this.closest('tr').rowIndex - 1)">Recibo</button>
                     <button class="btn-demo-row border border-red-600 text-red-700 hover:bg-red-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="abrirGmail(this.closest('tr').rowIndex - 1)"><i class="fa-solid fa-envelope"></i> Gmail</button>
                     <button class="btn-demo-row border border-green-600 text-green-700 hover:bg-green-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="abrirWhatsAppPopup(this.closest('tr').rowIndex - 1)"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                    <button class="btn-demo-row border border-rose-500 text-rose-600 hover:bg-rose-500 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="abrirGmailAgradecimento(this.closest('tr').rowIndex - 1)"><i class="fa-solid fa-envelope-circle-check"></i> Agradecer Gmail</button>
+                    <button class="btn-demo-row border border-teal-600 text-teal-700 hover:bg-teal-600 hover:text-white py-1 px-1.5 rounded text-[10px] font-bold uppercase transition w-full text-center" onclick="abrirWhatsAppAgradecimento(this.closest('tr').rowIndex - 1)"><i class="fa-brands fa-whatsapp"></i> Agradecer WhatsApp</button>
                     <div class="row-controls flex gap-1 justify-center items-center mt-1">
                         <button class="btn-icon add text-brand-600 hover:bg-brand-50 p-1.5 rounded text-sm transition" title="Adicionar Linha" onclick="addRow(this)"><i class="fa-solid fa-circle-plus"></i></button>
                         <button class="btn-icon save text-emerald-600 hover:bg-emerald-50 p-1.5 rounded text-sm transition" title="Salvar" onclick="saveData(true)"><i class="fa-solid fa-circle-check"></i></button>
@@ -616,6 +618,62 @@
         if (!janela) alert('O navegador bloqueou a abertura do Gmail. Permita pop-ups para este arquivo.');
     }
 
+    function dadosAgradecimento(rowIdx, exigirEmail = false) {
+        saveData(false);
+        const rows = document.querySelectorAll('#rent-rows tr');
+        if (!rows[rowIdx]) return null;
+        const row = rows[rowIdx];
+        const nome = row.querySelector('.in-name').value.trim();
+        const emailTexto = row.querySelector('.in-email').value.trim();
+        const emails = emailTexto.split(';').map(item => item.trim()).filter(Boolean);
+        const dataPagamento = row.querySelector('.in-date').value;
+        const subtotal = (parseFloat(row.querySelector('.in-val').value) || 0) + (parseFloat(row.querySelector('.in-extra').value) || 0);
+        const locador = document.getElementById('locador-nome').value.trim() || 'Locador';
+        if (!nome) { alert('Preencha o nome do inquilino.'); return null; }
+        if (exigirEmail && emails.length === 0) { alert('Preencha pelo menos um e-mail do inquilino.'); return null; }
+        if (exigirEmail) {
+            const emailInvalido = emails.find(item => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item));
+            if (emailInvalido) { alert('E-mail inválido: ' + emailInvalido + '. Separe os destinatários com ponto e vírgula.'); return null; }
+        }
+        if (!dataPagamento) { alert('Preencha a Data de Pagamento.'); return null; }
+        const hora = new Date().getHours();
+        return {
+            nome,
+            destinatarios: emails.join(','),
+            dataFormatada: dataPagamento.split('-').reverse().join('/'),
+            valorFormatado: subtotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}),
+            competencia: `${meses[currentMonthIdx]} / ${currentYear}`,
+            saudacao: hora < 12 ? 'bom dia' : hora < 18 ? 'boa tarde' : 'boa noite',
+            locador
+        };
+    }
+    function montarMensagemAgradecimento(dados, canal = 'gmail') {
+        const abertura = canal === 'whatsapp'
+            ? `🙋🏻‍♂️Olá, ${dados.saudacao} 🍀`
+            : `${dados.nome}, ${dados.saudacao} 🍀`;
+        return `${abertura}\n\n` +
+            `Agradeço pela realização do depósito/pagamento do aluguel.\n\n` +
+            `Competência: ${dados.competencia}\nData do pagamento: ${dados.dataFormatada}\nValor recebido: ${dados.valorFormatado}\n\n` +
+            `Pagamento recebido e registrado com sucesso.\n\n` +
+            `Obrigado Sempre !!✨🙌`;
+    }
+    function abrirGmailAgradecimento(rowIdx) {
+        const dados = dadosAgradecimento(rowIdx, true);
+        if (!dados) return;
+        const assunto = `Agradecimento pelo pagamento do aluguel - ${dados.competencia}`;
+        const corpo = montarMensagemAgradecimento(dados, 'gmail');
+        const urlGmail = 'https://mail.google.com/mail/?view=cm&fs=1' +
+            '&to=' + encodeURIComponent(dados.destinatarios) + '&su=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(corpo);
+        const janela = window.open(urlGmail, '_blank');
+        if (!janela) alert('O navegador bloqueou a abertura do Gmail. Permita pop-ups para este arquivo.');
+    }
+    function abrirWhatsAppAgradecimento(rowIdx) {
+        const dados = dadosAgradecimento(rowIdx, false);
+        if (!dados) return;
+        document.getElementById('whatsapp-popup-titulo').textContent = 'Agradecimento para WhatsApp';
+        document.getElementById('whatsapp-texto').value = montarMensagemAgradecimento(dados, 'whatsapp');
+        document.getElementById('whatsapp-popup').classList.add('ativo');
+    }
     function gerarDemonstrativo(rowIdx) {
         saveData(false);
         const rows = document.querySelectorAll('#rent-rows tr');
