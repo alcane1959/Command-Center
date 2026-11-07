@@ -626,7 +626,7 @@
             const dia = String(agora.getDate()).padStart(2, '0');
             const hora = String(agora.getHours()).padStart(2, '0');
             const min = String(agora.getMinutes()).padStart(2, '0');
-            const nomeArquivo = `Gestao_Financeira_${ano}_${dia}-${mes}-${ano}_${hora}h${min}.txt`;
+            const nomeArquivo = `Gestão_Financeira_${ano}_${dia}-${mes}-${ano}_${hora}h${min}.txt`;
             const blob = new Blob([JSON.stringify(fullDB)], {type: 'text/plain'});
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
             a.download = nomeArquivo; a.click();
@@ -835,7 +835,7 @@
             const agora = new Date();
             const dataFmt = agora.toLocaleDateString('pt-BR').replace(/\//g, '-');
             const horaFmt = agora.getHours() + 'h' + agora.getMinutes().toString().padStart(2, '0');
-            const nomeArquivo = `Gestao_de_Investimentos_2006_${dataFmt}_${horaFmt}.json`;
+            const nomeArquivo = `Gestão_de_Investimentos_2006_${dataFmt}_${horaFmt}.json`;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([data], {type: "application/json"}));
             a.download = nomeArquivo;
